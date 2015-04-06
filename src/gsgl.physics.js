@@ -56,10 +56,10 @@ GSGL.physics = {
 
 	},
 
-	circleCircle : function(circle0, circle1) {
+	circleCircle : function(c0, c1) {
 		var v0, v1, vLen, cRadi;
-		v0 = new GSVector2D({x: c0.pos.x, y: c0.pos.y});
-		v1 = new GSVector2D({x: c1.pos.x, y: c1.pos.y});
+		v0 = new GSGL.geometry.Vector2D(c0.pos.x, c0.pos.y);
+		v1 = new GSGL.geometry.Vector2D(c1.pos.x, c1.pos.y);
 		len = v1.subtract(v0).length();
 		cRadi = c0.radius + c1.radius;
 

@@ -92,6 +92,12 @@ GSGL.geometry = {
 				return Math.atan2(this.x, -this.y);
 			},
 
+			distanceTo : function(vec) {
+				var tmp = this.subtract(vec);
+
+				return tmp.length();
+			},
+
 			rotate : function(radian) {
 				// Must fix a utility class!
 				if(this.x == 0) {
@@ -135,6 +141,7 @@ GSGL.geometry = {
 				$g.beginPath();
 				$g.moveTo(x, y);
 				$g.lineTo(x + this.x, y + this.y);
+				$g.closePath();
 				$g.stroke();
 			},
 
@@ -143,7 +150,7 @@ GSGL.geometry = {
 
 				this.renderDirection(x, y);
 
-				temp = new  GSGL.geometry.Vector2D(this.x, this.y);
+				temp = new GSGL.geometry.Vector2D(this.x, this.y);
 
 				temp = temp.normalize();
 				temp = temp.rotate(GSGL.utility.degreeToRadian(30));
@@ -695,12 +702,10 @@ GSGL.geometry = {
 			render_step: 0.01,
 
 			constructor : function(params) {
-				var i, len;
-				i = 0;
-				len = params.length;
-
-				for(i; i < len; i += 1) {
-					this.addPoint(params[i]);
+				for(key in params) {
+					if(this[key] != undefined) {
+						this[key] = params[key];
+					}
 				}
 			},
 
@@ -790,6 +795,88 @@ GSGL.geometry = {
 			    } else {
 			        return 0;
 			    }
+			},
+
+			getLength : function(subdiv) {
+				var chunkLen = [];
+				var index;
+				var samples;
+				var pos;
+				var oldPos;
+				var tmpVec;
+				var totalLen = 0;
+				var point = 0;
+				var intPoint = 0;
+				var oldIntPoint = 0;
+
+				chunkLen[0] = 0;
+				
+				if(!subdiv) {
+					subdiv = 100;
+				}
+
+				samples = this.points.length * subdiv;
+				oldPos = new GSGL.geometry.Vector2D(this.points[0].x, this.points[0].y);
+
+				var i = 1;
+				var len = samples;
+
+				for(i; i < len; i += 1) {
+					index = i / samples;
+
+					pos = this.getPoint(index);
+					tmpVec = new GSGL.geometry.Vector2D(pos.x, pos.y);
+
+					totalLen += tmpVec.distanceTo(oldPos);
+					oldPos = new GSGL.geometry.Vector2D(pos.x, pos.y);
+
+					point = (this.points.length - 1) * index;
+					intPoint = Math.floor(point);
+
+					if(intPoint != oldIntPoint) {
+						chunkLen[intPoint] = totalLen.toFixed(8);
+						oldIntPoint = intPoint;
+					}
+				}
+
+				chunkLen[chunkLen.length] = totalLen;
+
+				return {chunks: chunkLen, total: totalLen};
+			},
+
+			reparametrizeByArcLength : function(samplingCoef) {
+				var newPoints = [];
+				var i = 1;
+				var len = this.points.length;
+				var sl = this.getLength(100);
+				var realDistance;
+				var sampling;
+				var pos;
+				var indexCurrent;
+				var index;
+				var indexNext;
+
+				newPoints.push(new GSGL.geometry.Point(this.points[0].x, this.points[0].y));
+
+				for(i; i < len; i += 1) {
+					realDistance = sl.chunks[i] - sl.chunks[i - 1];
+
+					sampling = Math.ceil(samplingCoef * realDistance / sl.total);
+
+					indexCurrent = (i - 1) / (this.points.length - 1);
+					indexNext = i / (this.points.length - 1);
+
+					var j = 1;
+
+					for(j; j < sampling - 1; j += 1) {
+						index = indexCurrent + j * (1 / sampling) * (indexNext - indexCurrent);
+
+						pos = this.getPoint(index);
+						newPoints.push(new GSGL.geometry.Point(pos.x, pos.y));
+					}
+				}
+
+				this.points = newPoints;
 			},
 
 			interpolate : function(sequence, t) {

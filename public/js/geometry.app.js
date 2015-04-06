@@ -83,14 +83,17 @@ Application = function(params) {
 			c0: new GSGL.geometry.Vector2D(450, 250),
 			c1: new GSGL.geometry.Vector2D(350, 250)
 		}),
-		bspline : new GSGL.geometry.BSpline(
-			[
+		bspline : new GSGL.geometry.BSpline({
+			points: [
 				new GSGL.geometry.Point(100, 350),
 				new GSGL.geometry.Point(150, 420),
 				new GSGL.geometry.Point(200, 320),
 				new GSGL.geometry.Point(300, 450),
+				new GSGL.geometry.Point(500, 250),
+				new GSGL.geometry.Point(525, 275),
+				new GSGL.geometry.Point(500, 350),
 			]
-		),
+		}),
 
 		constructor : function(params) {
 			this.logger.log("Creating application");
