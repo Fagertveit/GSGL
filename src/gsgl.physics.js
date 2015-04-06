@@ -8,7 +8,12 @@ GSGL.physics = {
 	},
 
 	pointCircle : function(point, circle) {
+		var v0, v1, len;
+		v0 = new GSGL.geometry.Vector2D(point.x, point.y);
+		v1 = new GSGL.geometry.Vector2D(circle.pos.x, circle.pos.y);
+		len = v1.subtract(v0).length();
 
+		return len < circle.radius;
 	},
 
 	pointRectangle : function(point, rectangle) {

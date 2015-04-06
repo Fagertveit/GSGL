@@ -714,7 +714,7 @@ GSGL.geometry = {
 			},
 
 			removePoint : function(i) {
-				this.points.slice(i, 1);
+				this.points.splice(i, 1);
 			},
 
 			removeFirst : function() {
