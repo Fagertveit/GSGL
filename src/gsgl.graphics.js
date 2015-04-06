@@ -311,4 +311,4 @@ GSGL.graphics = {
 
 		return color.getRGBAInt();
 	}
-}
+};
