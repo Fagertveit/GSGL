@@ -15,11 +15,11 @@ KKD.units = {
 	],
 	ATTACK_SPEED_COOLDOWN : [
 		1000,
+		750,
 		500,
-		250,
-		100,
-		50,
-		10,
+		400,
+		300,
+		200,
 	],
 	UNITS : {
 		"foresttroll" : {
@@ -76,6 +76,7 @@ KKD.units = {
 			damage : 2,
 			range : 80,
 			speed : 1,
+			type : 0,
 			level : 1,
 			lastAttack : 0,
 
@@ -120,6 +121,17 @@ KKD.units = {
 				var scale = this.dir.scale(20);
 				scale.renderDirection(this.pos.x, this.pos.y);
 				this.dir.renderArrow(this.pos.x + scale.x, this.pos.y + scale.y);
+			},
+
+			renderInfo : function(delta) {
+				$g.save();
+				$g.textAlign = "left";
+				$g.fillText(this.name, 15, 60);
+				$g.fillText("Damage: " + this.damage, 15, 80);
+				$g.fillText("Range: " + this.range, 15, 100);
+				$g.fillText("Speed: " + KKD.units.ATTACK_SPEED[this.speed], 15, 120);
+				$g.fillText("Attack Type: " + KKD.units.ATTACK_TYPE[this.type], 15, 140);
+				$g.restore();
 			},
 		};
 		unit.constructor(params);

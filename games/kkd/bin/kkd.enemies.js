@@ -85,6 +85,8 @@ KKD.enemies = {
 						this[key] = params[key];
 					}
 				}
+
+				this.maxHealth = this.health;
 			},
 
 			damage : function(damage) {
@@ -118,7 +120,18 @@ KKD.enemies = {
 				$g.fillRect(this.pos.x - 9, this.pos.y - 19, 18 * (this.health / this.maxHealth), 3);
 
 				$g.restore();
-			}
+			},
+
+			renderInfo : function(delta) {
+				$g.save();
+				$g.textAlign = "left";
+				$g.fillText(this.name, 15, 60);
+				$g.fillText("Health: " + this.health + "/" + this.maxHealth, 15, 80);
+				$g.fillText("Speed: " + KKD.enemies.SPEED[this.speed], 15, 100);
+				$g.fillText("Type: " + KKD.enemies.TYPE[this.type], 15, 120);
+				$g.fillText("Value: " + this.value, 15, 140)
+				$g.restore();
+			},
 		};
 		christian.constructor(params);
 
@@ -134,7 +147,7 @@ KKD.enemies = {
 			members : [],
 			padding : 1000,
 			size : 10,
-			type : "monk",
+			type : "cardinal",
 			lastMember : 0.0,
 			path : {},
 

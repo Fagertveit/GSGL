@@ -26,7 +26,7 @@ KKD.Application = function(params) {
 		container : '',
 		lastDelta : new Date().getTime(),
 		timerId : 0,
-		targetFps : 10,
+		targetFps : 20,
 		lastUpdate : 0,
 		fps : 30,
 		frames : 0,

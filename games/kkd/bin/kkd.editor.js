@@ -80,9 +80,9 @@ KKD.state.Editor = function(params) {
 			});
 
 			this.btns.testPath = new GSGL.ui.Button({
-				title: "Test Path",
+				title: "Export Path",
 				callback: function() {
-					_this.testPath();
+					_this.export();
 				},
 				shape: new GSGL.geometry.Rectangle({
 					pos: new GSGL.geometry.Point(10, 280),
@@ -218,8 +218,20 @@ KKD.state.Editor = function(params) {
 			this.editMode = "move";
 		},
 
-		testPath : function() {
+		export : function() {
+			var json = "{";
+			var len = this.path.points.length;
+			var i = 0;
 
+			for(i; i < len; i += 1) {
+				json += "[" + this.path.points[i].x + "," + this.path.points[i].y + "]";
+				if(i != len - 1) {
+					json += ",";
+				}
+			}
+
+			json += "}"
+			console.log(json);
 		},
 	};
 	editor.constructor(params);

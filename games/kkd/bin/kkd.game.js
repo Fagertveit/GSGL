@@ -54,14 +54,16 @@ KKD.state.Game = function(params) {
 			paths: [
 				new GSGL.geometry.BSpline({
 					points: [
-						new GSGL.geometry.Point(170, 100),
-						new GSGL.geometry.Point(400, 125),
-						new GSGL.geometry.Point(450, 225),
-						new GSGL.geometry.Point(300, 200),
-						new GSGL.geometry.Point(200, 225),
-						new GSGL.geometry.Point(225, 350),
-						new GSGL.geometry.Point(400, 300),
-						new GSGL.geometry.Point(400, 425),
+						new GSGL.geometry.Point(173,77),
+						new GSGL.geometry.Point(311,75),
+						new GSGL.geometry.Point(494,73),
+						new GSGL.geometry.Point(517,187),
+						new GSGL.geometry.Point(379,245),
+						new GSGL.geometry.Point(218,323),
+						new GSGL.geometry.Point(255,430),
+						new GSGL.geometry.Point(394,422),
+						new GSGL.geometry.Point(515,333),
+						new GSGL.geometry.Point(599,440),
 					]
 				}),
 			],
@@ -69,7 +71,11 @@ KKD.state.Game = function(params) {
 		}),
 		player : new KKD.player.Player({name: "Glenn Fagertveit", gold: 200}),
 		btns : {},
-		state : "neutral", // neutral | add | unit | enemy 
+		state : "neutral", // neutral | add | unit | enemy
+		tempUnit : {},
+		activeUnit : {},
+		activeEnemy : {},
+		activeArea : new GSGL.geometry.Rectangle({pos: new GSGL.geometry.Point(170, 10), width: 460, height: 460}),
 
 		constructor : function(params) {
 			for(key in params) {
@@ -88,19 +94,7 @@ KKD.state.Game = function(params) {
 			});
 
 			// Add some test units
-			this.player.addUnit(
-				new KKD.units.Unit({
-					pos: new GSGL.geometry.Point(260, 270),
-					dir: new GSGL.geometry.Vector2D(-0.5, 0.5)
-				})
-			);
-			this.player.addUnit(
-				new KKD.units.Unit({
-					pos: new GSGL.geometry.Point(300, 80),
-					dir: new GSGL.geometry.Vector2D(1.0, 0.0)
-				})
-			);
-
+			
 			// Buttons
 			this.buttons = {
 				pause : new GSGL.ui.Button({
@@ -285,6 +279,9 @@ KKD.state.Game = function(params) {
 						this.unitsButtons[i].update(delta);
 					}
 
+					if($mouse.CLICK[0] && $intersects(new GSGL.geometry.Point($mouse.X, $mouse.Y), this.activeArea)) {
+						this.checkSelection(new GSGL.geometry.Point($mouse.X, $mouse.Y));
+					}
 					break;
 				case "add":
 					// Update unit btns
@@ -296,6 +293,14 @@ KKD.state.Game = function(params) {
 					}
 
 					this.buttons.cancel.update(delta);
+					this.tempUnit.pos.setPosition($mouse.X, $mouse.Y);
+
+					if($intersects(new GSGL.geometry.Point($mouse.X, $mouse.Y), this.activeArea)) {
+						if($mouse.CLICK[0]) {
+							this.player.addUnit(this.tempUnit);
+							this.state = "neutral";
+						}
+					}
 					break;
 				case "unit":
 					var i = 0;
@@ -305,6 +310,10 @@ KKD.state.Game = function(params) {
 						this.unitButtons[i].update(delta);
 					}
 					this.buttons.cancel.update(delta);
+
+					if($mouse.CLICK[0] && $intersects(new GSGL.geometry.Point($mouse.X, $mouse.Y), this.activeArea)) {
+						this.checkSelection(new GSGL.geometry.Point($mouse.X, $mouse.Y));
+					}
 					break;
 				case "enemy":
 					// Update unit btns
@@ -312,9 +321,12 @@ KKD.state.Game = function(params) {
 					var len = this.unitsButtons.length;
 
 					for(i; i < len; i += 1) {
-						this.unitButtons[i].update(delta);
+						this.unitsButtons[i].update(delta);
 					}
 
+					if($mouse.CLICK[0] && $intersects(new GSGL.geometry.Point($mouse.X, $mouse.Y), this.activeArea)) {
+						this.checkSelection(new GSGL.geometry.Point($mouse.X, $mouse.Y));
+					}
 					break;
 				case "pause":
 					break;
@@ -371,6 +383,7 @@ KKD.state.Game = function(params) {
 					for(i; i < len; i += 1) {
 						this.unitsButtons[i].render(delta);
 					}
+
 					break;
 				case "add":
 					var i = 0;
@@ -382,7 +395,13 @@ KKD.state.Game = function(params) {
 
 					this.renderUnitInfo();
 
-					this.btns.cancel.render(delta);
+					this.buttons.cancel.render(delta);
+
+					if($intersects(
+						new GSGL.geometry.Point($mouse.X, $mouse.Y), 
+						this.activeArea)) {
+						this.tempUnit.render();
+					}
 					break;
 				case "unit":
 					var i = 0;
@@ -392,9 +411,9 @@ KKD.state.Game = function(params) {
 						this.unitButtons[i].render(delta);
 					}
 
-					this.renderActiveUnitInfo();
+					this.activeUnit.renderInfo();
 
-					this.btns.cancel.render(delta);
+					this.buttons.cancel.render(delta);
 					break;
 				case "enemy":
 					var i = 0;
@@ -404,7 +423,7 @@ KKD.state.Game = function(params) {
 						this.unitsButtons[i].render(delta);
 					}
 
-					this.renderEnemyInfo();
+					this.activeEnemy.renderInfo();
 					break;
 				case "pause":
 					var i = 0;
@@ -419,6 +438,29 @@ KKD.state.Game = function(params) {
 			}
 
 			this.collision = false;
+		},
+
+		checkSelection : function(pos) {
+			// Check Player Units
+			var i = 0;
+			var len = this.player.units.length;
+
+			for(i; i < len; i += 1) {
+				if($intersects(pos, this.player.units[i].shape)) {
+					this.selectActiveUnit(this.player.units[i]);
+				}
+			}
+
+			// Check Enemy Units
+
+			i = 0;
+			len = this.cult.members.length;
+
+			for(i; i < len; i += 1) {
+				if($intersects(pos, this.cult.members[i].shape)) {
+					this.selectEnemy(this.cult.members[i]);
+				}
+			}
 		},
 
 		renderUnitInfo : function() {
@@ -448,8 +490,15 @@ KKD.state.Game = function(params) {
 			len = christians.length;
 
 			for(i; i < len; i += 1) {
-				if(christians[i].lifetime >= 1) {
+				if(christians[i].lifetime >= 0.75) {
+					if(christians[i] == this.activeEnemy) {
+						this.activeEnemy = {}
+						if(this.state == "enemy") {
+							this.state = "neutral";
+						}
+					}
 					this.cult.removeMember(i);
+					len -= 1;
 					this.player.damage(1);
 
 					if(this.player.isDead()) {
@@ -476,6 +525,12 @@ KKD.state.Game = function(params) {
 					if(unit.canAttack()) {
 						christians[i].damage(unit.attack());
 						if(christians[i].isDead()) {
+							if(christians[i] == this.activeEnemy) {
+								this.activeEnemy = {}
+								if(this.state == "enemy") {
+									this.state = "neutral";
+								}
+							}
 							this.player.getGold(christians[i].value);
 							this.cult.removeMember(i);
 						}
@@ -492,14 +547,18 @@ KKD.state.Game = function(params) {
 
 		selectUnit : function(unit) {
 			console.log("Selecting " + unit);
+			this.state = "add";
+			this.tempUnit = new KKD.units.Unit(KKD.units.UNITS[unit]);
 		},
 
 		selectActiveUnit : function(unit) {
-
+			this.activeUnit = unit;
+			this.state = "unit";
 		},
 
 		selectEnemy : function(enemy) {
-
+			this.activeEnemy = enemy;
+			this.state = "enemy";
 		},
 
 		upgradeUnit : function(upgrade) {
@@ -507,8 +566,14 @@ KKD.state.Game = function(params) {
 		},
 
 		triggerNextWave : function() {
-
+			this.cult = new KKD.enemies.Cult({
+				path: this.map.paths[0]
+			});
 		},
+
+		cancelSelection : function() {
+			this.state = "neutral";
+		}
 	};
 	menu.constructor(params);
 
