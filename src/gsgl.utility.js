@@ -2,6 +2,46 @@ GSGL.utility = {
 	EPSILON : 0.000001,
 	PI : Math.PI,
 
+	Ajax : function(params) {
+		var ajax = {
+			async : false,
+
+			constructor : function(params) {
+				for(key in params) {
+					if(this[key] != undefined) {
+						this[key] = params[key];
+					}
+				}
+			},
+
+			createXHR : function() {
+				try { return new XMLHttpRequest(); } catch(err) {}
+				try { return new ActiveXObject("Msxml2.XMLHTTP.6.0"); } catch(err) {}
+				try { return new ActiveXObject("Msxml2.XMLHTTP.3.0"); } catch(err) {}
+				try { return new ActiveXObject("Msxml2.XMLHTTP"); } catch(err) {}
+				try { return new ActiveXObject("Microsoft.XMLHTTP"); } catch(err) {}
+
+				return null;
+			},
+
+			load : function(src, callback) {
+				var xhr = this.createXHR();
+				if(xhr) {
+					xhr.open("GET", src, this.async);
+					xhr.onreadystatechange = function() {
+						if(xhr.readyState == 4 && xhr.status == 200) {
+							callback(xhr);
+						}
+					};
+					xhr.send(null);
+				}
+			}
+		};
+		ajax.constructor(params);
+
+		return ajax;
+	},
+
 	Logger : function(params) {
 		var logger = {
 			console : true,

@@ -85,7 +85,67 @@ GSGL.surface = {
 
 	Surface3D : function(params) {
 		var surface3d = {
+			logger: new GSGL.utility.Logger({type:"3d Surface"}),
+			width: 640,
+			height: 360,
+			pos: {
+				x: 0,
+				y: 0,
+				z: 1,
+			},
+			id: "",
+			canvas : {},
 
+			constructor : function(params) {
+				for(key in params) {
+					if(this[key] != undefined) {
+						this[key] = params[key];
+					}
+				}
+
+				this.logger.log("Created 3d Surface", this);
+
+				this.generateCanvas();
+			},
+
+			generateCanvas : function() {
+				var container = document.getElementById(GSGL.CONTAINER_ID);
+				this.canvas = document.createElement("canvas");
+
+				this.canvas.setAttribute('id', this.id);
+				this.canvas.setAttribute('width', this.width);
+				this.canvas.setAttribute('height', this.height);
+
+				this.canvas.style.position = "absolute";
+				this.canvas.style.top = this.pos.y;
+				this.canvas.style.left = this.pos.x;
+				this.canvas.style.zIndex = this.pos.z;
+
+				container.appendChild(this.canvas);
+			},
+
+			initContext : function() {
+				gl = null;
+				try {
+					gl = this.canvas.getContext("experimental-webgl", {preserveDrawingBuffer: true}) || this.canvas.getContext("webgl", {preserveDrawingBuffer: true});
+				} catch(e) {
+					this.logger.log("Doh!, Something went wrong: " + e);
+					return 0;
+				}
+
+				this.logger.log("WebGL initialized successfully!");
+				gl.clearColor(0.0, 0.0, 0.0, 1.0);
+			},
+
+			clear : function() {
+    			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+				gl.enable(gl.BLEND);
+				gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+			},
+
+			toUrl : function() {
+				return this.container.toDataURL("image/png");
+			},
 		};
 		surface3d.constructor(params);
 

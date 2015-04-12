@@ -23,6 +23,7 @@ GSGL.graphics = {
 			},
 
 			load : function(src) {
+				this.uid = $resourceManager.addResource("image");
 				this.source = src;
 				this.image.setAttribute("src", src);
 				
@@ -47,6 +48,7 @@ GSGL.graphics = {
 
 			loadHandler : function(event) {
 				this.loaded = true;
+				$resourceManager.setLoaded(this.uid);
 			},
 
 			errorHandler : function(event) {

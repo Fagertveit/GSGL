@@ -11,10 +11,10 @@ KKD.enemies = {
 		"air"
 	],
 	SPEED_INCR : [
+		0.00001,
 		0.00003,
 		0.00006,
 		0.00009,
-		0.0002
 	],
 	ENEMIES : {
 		"monk": {
