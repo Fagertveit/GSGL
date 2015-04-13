@@ -151,4 +151,78 @@ GSGL.surface = {
 
 		return surface3d;
 	},
+
+	RenderManager : function(params) {
+		var renderManager = {
+			renderCalls : [],
+
+			constructor : function(params) {
+				for(key in params) {
+					if(this[key] != undefined) {
+						this[key] = params[key];
+					}
+				}
+			},
+
+			clearCalls : function() {
+				this.renderCalls.splice(0, this.renderCalls.length);
+			},
+
+			addRenderCall : function(call) {
+				this.renderCalls.push(call);
+			},
+
+			render : function(program) {
+				gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+				gl.enable(gl.BLEND);
+				gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+				GSGL.gl.resolutionLoc = gl.getUniformLocation(program, "u_resolution");
+				gl.uniform2f(GSGL.gl.resolutionLoc, 640, 480);
+
+				GSGL.gl.positionLoc = gl.getAttribLocation(program, "a_position");
+				GSGL.gl.texCoordLoc = gl.getAttribLocation(program, "a_texCoord");
+				GSGL.gl.colorLoc = gl.getUniformLocation(program, "u_color");
+				GSGL.gl.noTextureLoc = gl.getUniformLocation(program, "no_texture");
+
+				var len = this.renderCalls.length;
+				var i = 0;
+
+				for(i; i < len; i += 1) {
+					gl.uniform1i(GSGL.gl.noTextureLoc, 0);
+					gl.bindTexture(gl.TEXTURE_2D, this.renderCalls[i].texture);
+					
+					var vertexBuffer = gl.createBuffer();
+
+					gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+					gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.renderCalls[i].vertices), gl.STATIC_DRAW);
+					gl.enableVertexAttribArray(GSGL.gl.positionLoc);
+					gl.vertexAttribPointer(GSGL.gl.positionLoc, 2, gl.FLOAT, false, 0, 0);
+					
+					
+					var texCoordBuffer = gl.createBuffer();
+
+					gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
+					gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.renderCalls[i].uvs), gl.STATIC_DRAW);
+					gl.enableVertexAttribArray(GSGL.gl.texCoordLoc);
+					gl.vertexAttribPointer(GSGL.gl.texCoordLoc, 2, gl.FLOAT, false, 0, 0);
+					
+					var indicesBuffer = gl.createBuffer();
+
+					gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesBuffer);
+					gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.renderCalls[i].indices), gl.STATIC_DRAW);
+					
+					gl.drawElements(gl.TRIANGLES, this.renderCalls[i].numIndices, gl.UNSIGNED_SHORT, 0);
+					
+					gl.disableVertexAttribArray(GSGL.gl.positionLoc);
+					gl.disableVertexAttribArray(GSGL.gl.texCoordLoc);
+				}
+
+				this.clearCalls();
+			},
+		};
+		renderManager.constructor(params);
+
+		return renderManager;
+	},
 };
