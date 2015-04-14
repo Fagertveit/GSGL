@@ -4,7 +4,7 @@ GSGL.gl.sprite = {
 			uv : [0.0, 0.0, 1.0, 1.0],
 			width : 0,
 			height : 0,
-			texture : null,
+			texture : {},
 
 			constructor : function(params) {
 				for(key in params) {

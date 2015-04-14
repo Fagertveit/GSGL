@@ -30,26 +30,25 @@ Application = function(params) {
 			$intersects = GSGL.physics.intersects;
 			$ajax = new GSGL.utility.Ajax({});
 			$resources = new GSGL.resource.ResourceManager();
-			$renderManager = new GSGL.surface.RenderManager();
+			//$renderManager = new GSGL.surface.RenderManager();
 
 			this.surface.initContext();
 
 			// We need to load an application state before we start the application
 			this.shaderManager = new GSGL.gl.shader.ShaderManager({});
 			this.shaderManager.initShaders("data/2d.fshader", "data/2d.vshader");
+			$renderManager = new GSGL.surface.RenderManager2D({program: this.shaderManager.program});
 
 			this.texture = new GSGL.gl.texture.Texture({src: "img/desert.png"});
-
-			console.log($renderManager);
 
 			window.setTimeout(function() {
 				_this.sprite = new GSGL.gl.sprite.Sprite({width: 256, height: 256, texture: _this.texture.texture});
 				_this.renderCall = _this.sprite.render(100, 100, this);
 
 				console.log(_this.renderCall);
+
 				_this.start();
 			}, 1000);
-			
 		},
 
 		step : function() {
@@ -96,47 +95,11 @@ Application = function(params) {
 		},
 
 		render : function(delta) {
-			var renderCall = this.sprite.render(100, 100, true);
+			this.sprite.render(100, 100);
 
-			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-			gl.enable(gl.BLEND);
-			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-
-			GSGL.gl.resolutionLoc = gl.getUniformLocation(this.shaderManager.program, "u_resolution");
-			gl.uniform2f(GSGL.gl.resolutionLoc, 640, 480);
-
-			GSGL.gl.positionLoc = gl.getAttribLocation(this.shaderManager.program, "a_position");
-			GSGL.gl.texCoordLoc = gl.getAttribLocation(this.shaderManager.program, "a_texCoord");
-			GSGL.gl.colorLoc = gl.getUniformLocation(this.shaderManager.program, "u_color");
-			GSGL.gl.noTextureLoc = gl.getUniformLocation(this.shaderManager.program, "no_texture");
-
-			gl.uniform1i(GSGL.gl.noTextureLoc, 0);
-			gl.bindTexture(gl.TEXTURE_2D, this.texture.texture);
+			this.sprite.render(356, 100);
 			
-			var vertexBuffer = gl.createBuffer();
-
-			gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(renderCall.vertices), gl.STATIC_DRAW);
-			gl.enableVertexAttribArray(GSGL.gl.positionLoc);
-			gl.vertexAttribPointer(GSGL.gl.positionLoc, 2, gl.FLOAT, false, 0, 0);
-			
-			
-			var texCoordBuffer = gl.createBuffer();
-
-			gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
-			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(renderCall.uvs), gl.STATIC_DRAW);
-			gl.enableVertexAttribArray(GSGL.gl.texCoordLoc);
-			gl.vertexAttribPointer(GSGL.gl.texCoordLoc, 2, gl.FLOAT, false, 0, 0);
-			
-			var indicesBuffer = gl.createBuffer();
-
-			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesBuffer);
-			gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(renderCall.indices), gl.STATIC_DRAW);
-			
-			gl.drawElements(gl.TRIANGLES, renderCall.numIndices, gl.UNSIGNED_SHORT, 0);
-			
-			gl.disableVertexAttribArray(GSGL.gl.positionLoc);
-			gl.disableVertexAttribArray(GSGL.gl.texCoordLoc);
+			$renderManager.render();
 		},
 	};
 	application.constructor(params);
