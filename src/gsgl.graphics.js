@@ -165,6 +165,10 @@ GSGL.graphics = {
 				return {r: this.toFloat(this.r), g: this.toFloat(this.g), b: this.toFloat(this.b), a: this.toFloat(this.a)};
 			},
 
+			getRGBAFloatArray : function() {
+				return [this.toFloat(this.r), this.toFloat(this.g), this.toFloat(this.b), this.a];
+			},
+
 			getRGBAInt : function() {
 				return {r: this.toInt(this.r), g: this.toInt(this.g), b: this.toInt(this.b), a: this.toInt(this.a)};
 			},

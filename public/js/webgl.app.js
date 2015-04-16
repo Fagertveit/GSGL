@@ -11,13 +11,19 @@ Application = function(params) {
 		container : '',
 		lastDelta : 0,
 		timerId : 0,
-		targetFps : 30,
+		targetFps : 20,
 		lastUpdate : 0,
 		fps : 30,
 		frames : 0,
 		logger : new GSGL.utility.Logger({type: "Application"}),
 		surface : new GSGL.surface.Surface3D({id: "gsgl-canvas", width: 640, height: 480}),
 		// Creating the basic shapes
+		scaleUp : true,
+		scale : 1,
+		angle : 0,
+
+		x : 100,
+		y : 100,
 
 		constructor : function(params) {
 			var _this = this;
@@ -37,18 +43,45 @@ Application = function(params) {
 			// We need to load an application state before we start the application
 			this.shaderManager = new GSGL.gl.shader.ShaderManager({});
 			this.shaderManager.initShaders("data/2d.fshader", "data/2d.vshader");
-			$renderManager = new GSGL.surface.RenderManager2D({program: this.shaderManager.program});
+			$renderManager = new GSGL.gl.render.RenderManager2D({program: this.shaderManager.program});
 
-			this.texture = new GSGL.gl.texture.Texture({src: "img/desert.png"});
+			this.texture = new GSGL.gl.texture.Texture({src: "img/tiles.png"});
+			this.font = new GSGL.gl.font.Font({src: "font/default.xml"});
+			this.particleTexture = new GSGL.gl.texture.Texture({src: "img/particle_default.png"});
 
-			window.setTimeout(function() {
-				_this.sprite = new GSGL.gl.sprite.Sprite({width: 256, height: 256, texture: _this.texture.texture});
-				_this.renderCall = _this.sprite.render(100, 100, this);
+			//this.sprite = new GSGL.gl.sprite.Sprite({width: 64, height: 64, texture: _this.texture.texture});
+			this.tiles = [];
+			this.tiles[0] = new GSGL.gl.sprite.Sprite({width: 64, height: 64, texture: _this.texture.texture, hasColor: true});
+			this.tiles[0].setUVPixels(256, 256, 0, 0, 32, 32);
+			this.tiles[1] = new GSGL.gl.sprite.Sprite({width: 64, height: 64, texture: _this.texture.texture, hasColor: false});
+			this.tiles[1].setUVPixels(256, 256, 32, 0, 32, 32);
+			this.tiles[2] = new GSGL.gl.sprite.Sprite({width: 64, height: 64, texture: _this.texture.texture});
+			this.tiles[2].setUVPixels(256, 256, 64, 0, 32, 32);
+			this.tiles[3] = new GSGL.gl.sprite.Sprite({width: 64, height: 64, texture: _this.texture.texture});
+			this.tiles[3].setUVPixels(256, 256, 96, 0, 32, 32);
+			this.tiles[4] = new GSGL.gl.sprite.Sprite({width: 64, height: 64, texture: _this.texture.texture});
+			this.tiles[4].setUVPixels(256, 256, 128, 0, 32, 32);
+			this.tiles[5] = new GSGL.gl.sprite.Sprite({width: 64, height: 64, texture: _this.texture.texture});
+			this.tiles[5].setUVPixels(256, 256, 160, 0, 32, 32);
+			this.tiles[6] = new GSGL.gl.sprite.Sprite({width: 64, height: 64, texture: _this.texture.texture});
+			this.tiles[6].setUVPixels(256, 256, 192, 0, 32, 32);
+			this.tiles[7] = new GSGL.gl.sprite.Sprite({width: 64, height: 64, texture: _this.texture.texture});
+			this.tiles[7].setUVPixels(256, 256, 224, 0, 32, 32);
 
-				console.log(_this.renderCall);
+			this.particleSprite = new GSGL.gl.sprite.Sprite({
+				width: 32, 
+				height: 32, 
+				texture: _this.particleTexture.texture, 
+				hasColor: true,
+				color: new GSGL.graphics.Color({r: 255, g: 0, b: 0, a: 0.6}),
+			});
 
-				_this.start();
-			}, 1000);
+			this.particleEmitter = new GSGL.gl.particle.ParticleEmitter({
+				sprite: this.particleSprite,
+				pos: {x: 320, y: 260},
+			});
+
+			this.start();
 		},
 
 		step : function() {
@@ -57,9 +90,15 @@ Application = function(params) {
 
 		start : function() {
 			var _this = this;
-			this.timerId = window.setInterval(function(){
-				_this.loop();
-			}, (1000/_this.targetFps));
+			if($resources.isLoaded()) {
+				this.timerId = window.setInterval(function() {
+					_this.loop();
+				}, (1000/_this.targetFps));
+			} else {
+				window.setTimeout(function() {
+					_this.start();
+				}, 100)
+			}
 		},
 
 		stop : function() {
@@ -91,14 +130,47 @@ Application = function(params) {
 		},
 
 		update : function(delta) {
+			if(this.scale > 4) {
+				this.scaleUp = false;
+			} else if(this.scale < 0.2) {
+				this.scaleUp = true;
+			}
 
+			if(this.scaleUp) {
+				this.scale += 0.01;
+			} else {
+				this.scale -= 0.01;
+			}
+
+			this.angle += 5;
+			if(this.angle >= 360) {
+				this.angle = 0;
+			}
+
+			this.particleEmitter.update(delta);
 		},
 
 		render : function(delta) {
-			this.sprite.render(100, 100);
+			//this.sprite.render(100, 100);
 
-			this.sprite.render(356, 100);
+			//this.sprite.renderAngleScale(50, 50, this.angle, this.scale);
 			
+			//this.sprite.renderAngleScale(350, 350, this.angle, -this.scale)
+			/*
+			this.tiles[0].render(100, 100);
+			this.tiles[1].render(164, 100);
+			this.tiles[2].render(100, 164);
+			this.tiles[3].render(164, 164);
+			this.tiles[4].render(100, 228);
+			this.tiles[5].render(164, 228);
+			this.tiles[6].render(228, 164);
+			
+			this.font.drawString("Testar litet!", 100, 100);
+			*/
+
+			//this.particleSprite.renderScale(this.x, this.y, 3);
+
+			this.particleEmitter.render();
 			$renderManager.render();
 		},
 	};

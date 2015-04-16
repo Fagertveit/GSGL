@@ -8,6 +8,7 @@ GSGL.gl.texture = {
 			height : 0,
 			texture : null,
 			isLoaded : false,
+			onLoaded : {},
 			src : "",
 
 			constructor : function(params) {
@@ -50,6 +51,9 @@ GSGL.gl.texture = {
 				$resources.setLoaded(this.id);
 
 				this.init();
+				if(typeof(this.onLoaded) == "function") {
+					this.onLoaded();
+				}	
 			},
 
 			errorHandler : function(event) {

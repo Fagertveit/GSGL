@@ -95,6 +95,15 @@ GSGL.resource = {
 
 				return response;
 			},
+
+			isLoaded : function() {
+				var response = this.checkProgress();
+				if(response.percent == 100) {
+					return true;
+				} else {
+					return false;
+				}
+			},
 		};
 		resourceManager.constructor(params);
 
