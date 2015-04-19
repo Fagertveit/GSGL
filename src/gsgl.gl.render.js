@@ -33,8 +33,7 @@ GSGL.gl.render = {
 			},
 
 			drawScene : function() {
-				gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-				gl.enable(gl.BLEND);
+				gl.useProgram(this.program);
 				gl.blendFunc(gl.ONE, gl.ONE);
 				//gl.blendFunc(gl.DST_COLOR, gl.DST_COLOR);
 

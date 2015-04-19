@@ -6,4 +6,6 @@
 var GSGL = {
 	/* Global settings */
 	CONTAINER_ID : "gsgl-container",
+	WIDTH : 640,
+	HEIGHT : 480,
 };

@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>GSGL Particle Editor</title>
+	<link href='http://fonts.googleapis.com/css?family=Ubuntu:400,500&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+	<link rel="stylesheet" href="css/style.css" />
+	<script src="../../../src/gsgl.js"></script>
+	<script src="../../../src/gsgl.utility.js"></script>
+	<script src="../../../src/gsgl.surface.js"></script>
+	<script src="../../../src/gsgl.geometry.js"></script>
+	<script src="../../../src/gsgl.ui.js"></script>
+	<script src="../../../src/gsgl.physics.js"></script>
+	<script src="../../../src/gsgl.graphics.js"></script>
+	<script src="../../../src/gsgl.event.js"></script>
+	<script src="../../../src/gsgl.resource.js"></script>
+	<script src="../../../src/gsgl.gl.js"></script>
+	<script src="../../../src/gsgl.gl.shader.js"></script>
+	<script src="../../../src/gsgl.gl.texture.js"></script>
+	<script src="../../../src/gsgl.gl.render.js"></script>
+	<script src="../../../src/gsgl.gl.sprite.js"></script>
+	<script src="../../../src/gsgl.gl.font.js"></script>
+	<script src="../../../src/gsgl.gl.particle.js"></script>
+</head>
+
+<body>
+	<div class="container">
+		<div class="canvas" id="gsgl-container"></div>
+		<div class="system-edit">
+			<div class="status">
+				<div class="status-fps">
+					FPS: 
+					<span id="fps-counter">0</span>
+				</div>
+				<div class="status-particles">
+					Particle Count: 
+					<span id="particle-count">0</span>
+				</div>
+			</div>
+			<div class="emitter-list">
+				<ul id="emitter-list">
+					
+				</ul>
+				<button id="add"> + Add Emitter</button>
+			</div>
+			
+		</div>
+		<div class="emitter-edit">
+			<div class="column">
+				<div class="setting">
+					<div class="setting-title">
+						<div>Position</div>
+					</div>
+					<div class="setting-input input-col-2">
+						<div class="title">X Position</div>
+						<input type="text" name="pos-x" id="position_x">
+					</div>
+					<div class="setting-input input-col-2">
+						<div class="title">Y Position</div>
+						<input type="text" name="pos-y" id="position_y">
+					</div>
+					<div class="clear"></div>
+				</div>
+
+				<div class="setting">
+					<div class="setting-title">
+						<div>Start Size</div>
+					</div>
+					<div class="setting-input input-col-2">
+						<div class="title">Max Size</div>
+						<input type="text" name="max-size" id="max_size">
+					</div>
+					<div class="setting-input input-col-2">
+						<div class="title">Min Size</div>
+						<input type="text" name="min-size" id="min_size">
+					</div>
+					<div class="clear"></div>
+				</div>
+
+				<div class="setting">
+					<div class="setting-title">
+						<div>Velocity X</div>
+					</div>
+					<div class="setting-input input-col-2">
+						<div class="title">Max</div>
+						<input type="text" name="max-size" id="velocity_x_max">
+					</div>
+					<div class="setting-input input-col-2">
+						<div class="title">Min</div>
+						<input type="text" name="min-size" id="velocity_x_min">
+					</div>
+					<div class="clear"></div>
+				</div>
+
+				<div class="setting">
+					<div class="setting-title">
+						<div>Velocity Y</div>
+					</div>
+					<div class="setting-input input-col-2">
+						<div class="title">Max</div>
+						<input type="text" name="max-size" id="velocity_y_max">
+					</div>
+					<div class="setting-input input-col-2">
+						<div class="title">Min</div>
+						<input type="text" name="min-size" id="velocity_y_min">
+					</div>
+					<div class="clear"></div>
+				</div>
+
+				<div class="setting">
+					<div class="setting-title">
+						<div>Growth</div>
+					</div>
+					<div class="setting-input input-col-1">
+						<div class="title">Growth</div>
+						<input type="text" name="max-size" id="growth">
+					</div>
+					<div class="clear"></div>
+				</div>
+			</div>
+			<div class="column">
+				<div class="setting">
+					<div class="setting-title">
+						<div>Angular Vel</div>
+					</div>
+					<div class="setting-input input-col-1">
+						<div class="title">Value</div>
+						<input type="text" name="max-size" id="angular_velocity">
+					</div>
+					<div class="clear"></div>
+				</div>
+
+				<div class="setting">
+					<div class="setting-title">
+						<div>Gravitation</div>
+					</div>
+					<div class="setting-input input-col-1">
+						<div class="title">Value</div>
+						<input type="text" name="max-size" id="gravitation">
+					</div>
+					<div class="clear"></div>
+				</div>
+
+				<div class="setting">
+					<div class="setting-title">
+						<div>Wind</div>
+					</div>
+					<div class="setting-input input-col-1">
+						<div class="title">Value</div>
+						<input type="text" name="max-size" id="wind">
+					</div>
+					<div class="clear"></div>
+				</div>
+
+				<div class="setting">
+					<div class="setting-title">
+						<div>Life</div>
+					</div>
+					<div class="setting-input input-col-1">
+						<div class="title">Microseconds</div>
+						<input type="text" name="max-size" id="life">
+					</div>
+					<div class="clear"></div>
+				</div>
+
+				<div class="setting">
+					<div class="setting-title">
+						<div>Particles</div>
+					</div>
+					<div class="setting-input input-col-1">
+						<div class="title">Particles Per Second</div>
+						<input type="text" name="max-size" id="particles_per_second">
+					</div>
+					<div class="clear"></div>
+				</div>
+			</div>
+			<div class="column">
+				<div class="setting">
+					<div class="setting-title">
+						<div>Start Color</div>
+					</div>
+					<div class="setting-input input-col-4">
+						<div class="title">Red</div>
+						<input type="text" name="max-size" id="start_color_red">
+					</div>
+					<div class="setting-input input-col-4">
+						<div class="title">Green</div>
+						<input type="text" name="max-size" id="start_color_green">
+					</div>
+					<div class="setting-input input-col-4">
+						<div class="title">Blue</div>
+						<input type="text" name="max-size" id="start_color_blue">
+					</div>
+					<div class="setting-input input-col-4">
+						<div class="title">Alpha</div>
+						<input type="text" name="max-size" id="start_color_alpha">
+					</div>
+					<div class="clear"></div>
+				</div>
+
+				<div class="setting">
+					<div class="setting-title">
+						<div>End Color</div>
+					</div>
+					<div class="setting-input input-col-4">
+						<div class="title">Red</div>
+						<input type="text" name="max-size" id="end_color_red">
+					</div>
+					<div class="setting-input input-col-4">
+						<div class="title">Green</div>
+						<input type="text" name="max-size" id="end_color_green">
+					</div>
+					<div class="setting-input input-col-4">
+						<div class="title">Blue</div>
+						<input type="text" name="max-size" id="end_color_blue">
+					</div>
+					<div class="setting-input input-col-4">
+						<div class="title">Alpha</div>
+						<input type="text" name="max-size" id="end_color_alpha">
+					</div>
+					<div class="clear"></div>
+				</div>
+
+				<div class="setting">
+					<div class="setting-title">
+						<div>Blend Src</div>
+					</div>
+					<div class="setting-input input-col-1">
+						<div class="title">Source Mode</div>
+						<select name="blend-src" id="blend_src">
+							<option value="0">ZERO</option>
+							<option value="1">ONE</option>
+							<option value="768">SRC_COLOR</option>
+							<option value="769">ONE_MINUS_SRC_COLOR</option>
+							<option value="770">SRC_ALPHA</option>
+							<option value="771">ONE_MINUS_SRC_ALPHA</option>
+							<option value="772">DST_ALPHA</option>
+							<option value="773">ONE_MINUS_DST_ALPHA</option>
+							<option value="774">DST_COLOR</option>
+							<option value="775">ONE_MINUS_DST_COLOR</option>
+							<option value="776">SRC_ALPHA_SATURATE</option>
+							<option value="32769">CONSTANT_COLOR</option>
+							<option value="32770">ONE_MINUS_CONSTANT_COLOR</option>
+							<option value="32771">CONSTANT_ALPHA</option>
+							<option value="32772">ONE_MINUS_CONSTANT_ALPHA</option>
+						</select>
+					</div>
+					<div class="clear"></div>
+				</div>
+
+				<div class="setting">
+					<div class="setting-title">
+						<div>Blend Dst</div>
+					</div>
+					<div class="setting-input input-col-1">
+						<div class="title">Destination Mode</div>
+						<select name="blend-src" id="blend_dst">
+							<option value="0">ZERO</option>
+							<option value="1">ONE</option>
+							<option value="768">SRC_COLOR</option>
+							<option value="769">ONE_MINUS_SRC_COLOR</option>
+							<option value="770">SRC_ALPHA</option>
+							<option value="771">ONE_MINUS_SRC_ALPHA</option>
+							<option value="772">DST_ALPHA</option>
+							<option value="773">ONE_MINUS_DST_ALPHA</option>
+							<option value="774">DST_COLOR</option>
+							<option value="775">ONE_MINUS_DST_COLOR</option>
+							<option value="32769">CONSTANT_COLOR</option>
+							<option value="32770">ONE_MINUS_CONSTANT_COLOR</option>
+							<option value="32771">CONSTANT_ALPHA</option>
+							<option value="32772">ONE_MINUS_CONSTANT_ALPHA</option>
+						</select>
+					</div>
+					<div class="clear"></div>
+				</div>
+				
+			</div>
+		</div>
+	</div>
+<script src="js/pedit.app.js"></script>
+</body>
+</html>

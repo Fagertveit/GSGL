@@ -9,11 +9,11 @@ Application = function(params) {
 	var application = {
 		state : {},
 		container : '',
-		lastDelta : 0,
+		lastDelta : new Date().getTime(),
 		timerId : 0,
 		targetFps : 20,
 		lastUpdate : 0,
-		fps : 30,
+		fps : 60,
 		frames : 0,
 		logger : new GSGL.utility.Logger({type: "Application"}),
 		surface : new GSGL.surface.Surface3D({id: "gsgl-canvas", width: 640, height: 480}),
@@ -41,13 +41,50 @@ Application = function(params) {
 			this.surface.initContext();
 
 			// We need to load an application state before we start the application
-			this.shaderManager = new GSGL.gl.shader.ShaderManager({});
-			this.shaderManager.initShaders("data/2d.fshader", "data/2d.vshader");
-			$renderManager = new GSGL.gl.render.RenderManager2D({program: this.shaderManager.program});
+			//this.shaderManager = new GSGL.gl.shader.ShaderManager({});
+			//this.shaderManager.initShaders("data/2d.fshader", "data/2d.vshader");
+			//$renderManager = new GSGL.gl.render.RenderManager2D({program: this.shaderManager.program});
 
 			this.texture = new GSGL.gl.texture.Texture({src: "img/tiles.png"});
 			this.font = new GSGL.gl.font.Font({src: "font/default.xml"});
-			this.particleTexture = new GSGL.gl.texture.Texture({src: "img/particle_default.png"});
+			this.particleTexture = new GSGL.gl.texture.Texture({src: "img/alpha_particle.png"});
+
+			particleProgram = new GSGL.gl.shader.ShaderManager({});
+			particleProgram.initShaders("data/2dParticle.fshader", "data/2dParticle.vshader");
+
+			this.particleEmitter = new GSGL.gl.particle.ParticleEmitter({
+				texture: this.particleTexture.texture,
+				program: particleProgram.program,
+				pos: {x: 320, y: 360},
+			});
+
+			this.particleEmitter2 = new GSGL.gl.particle.ParticleEmitter({
+				texture: this.particleTexture.texture,
+				program: particleProgram.program,
+				color: [1.0, 0.8, 0.0, 1.0],
+				pos: {x: 320, y: 360},
+				life: 800,
+				startSize : {
+					min : 4.0,
+					max : 8.0
+				},
+				blendSrc: gl.SRC_ALPHA,
+				blendTarget: gl.ONE,
+			});
+
+			this.particleEmitter3 = new GSGL.gl.particle.ParticleEmitter({
+				texture: this.particleTexture.texture,
+				program: particleProgram.program,
+				color: [0.2, 0.2, 0.2, 1.0],
+				pos: {x: 320, y: 360},
+				life: 1500,
+				startSize : {
+					min : 16.0,
+					max : 22.0
+				},
+				blendSrc: gl.SRC_ALPHA,
+				blendTarget: gl.ONE_MINUS_SRC_ALPHA,
+			});
 
 			//this.sprite = new GSGL.gl.sprite.Sprite({width: 64, height: 64, texture: _this.texture.texture});
 			this.tiles = [];
@@ -67,19 +104,6 @@ Application = function(params) {
 			this.tiles[6].setUVPixels(256, 256, 192, 0, 32, 32);
 			this.tiles[7] = new GSGL.gl.sprite.Sprite({width: 64, height: 64, texture: _this.texture.texture});
 			this.tiles[7].setUVPixels(256, 256, 224, 0, 32, 32);
-
-			this.particleSprite = new GSGL.gl.sprite.Sprite({
-				width: 32, 
-				height: 32, 
-				texture: _this.particleTexture.texture, 
-				hasColor: true,
-				color: new GSGL.graphics.Color({r: 255, g: 0, b: 0, a: 0.6}),
-			});
-
-			this.particleEmitter = new GSGL.gl.particle.ParticleEmitter({
-				sprite: this.particleSprite,
-				pos: {x: 320, y: 260},
-			});
 
 			this.start();
 		},
@@ -148,9 +172,13 @@ Application = function(params) {
 			}
 
 			this.particleEmitter.update(delta);
+			this.particleEmitter2.update(delta);
+			this.particleEmitter3.update(delta);
 		},
 
 		render : function(delta) {
+			gl.clear(gl.COLOR_BUFFER_BIT);
+			gl.enable(gl.BLEND);
 			//this.sprite.render(100, 100);
 
 			//this.sprite.renderAngleScale(50, 50, this.angle, this.scale);
@@ -170,8 +198,10 @@ Application = function(params) {
 
 			//this.particleSprite.renderScale(this.x, this.y, 3);
 
+			//this.particleEmitter3.render();
 			this.particleEmitter.render();
-			$renderManager.render();
+			this.particleEmitter2.render();
+			//$renderManager.render();
 		},
 	};
 	application.constructor(params);
