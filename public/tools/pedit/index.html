@@ -37,143 +37,11 @@
 				</div>
 			</div>
 			<div class="emitter-list">
-				<ul id="emitter-list">
-					
-				</ul>
+				<ul id="emitter-list"></ul>
 				<button id="add"> + Add Emitter</button>
 			</div>
-			
-		</div>
-		<div class="emitter-edit">
-			<div class="column">
-				<div class="setting">
-					<div class="setting-title">
-						<div>Position</div>
-					</div>
-					<div class="setting-input input-col-2">
-						<div class="title">X Position</div>
-						<input type="text" name="pos-x" id="position_x">
-					</div>
-					<div class="setting-input input-col-2">
-						<div class="title">Y Position</div>
-						<input type="text" name="pos-y" id="position_y">
-					</div>
-					<div class="clear"></div>
-				</div>
-
-				<div class="setting">
-					<div class="setting-title">
-						<div>Start Size</div>
-					</div>
-					<div class="setting-input input-col-2">
-						<div class="title">Max Size</div>
-						<input type="text" name="max-size" id="max_size">
-					</div>
-					<div class="setting-input input-col-2">
-						<div class="title">Min Size</div>
-						<input type="text" name="min-size" id="min_size">
-					</div>
-					<div class="clear"></div>
-				</div>
-
-				<div class="setting">
-					<div class="setting-title">
-						<div>Velocity X</div>
-					</div>
-					<div class="setting-input input-col-2">
-						<div class="title">Max</div>
-						<input type="text" name="max-size" id="velocity_x_max">
-					</div>
-					<div class="setting-input input-col-2">
-						<div class="title">Min</div>
-						<input type="text" name="min-size" id="velocity_x_min">
-					</div>
-					<div class="clear"></div>
-				</div>
-
-				<div class="setting">
-					<div class="setting-title">
-						<div>Velocity Y</div>
-					</div>
-					<div class="setting-input input-col-2">
-						<div class="title">Max</div>
-						<input type="text" name="max-size" id="velocity_y_max">
-					</div>
-					<div class="setting-input input-col-2">
-						<div class="title">Min</div>
-						<input type="text" name="min-size" id="velocity_y_min">
-					</div>
-					<div class="clear"></div>
-				</div>
-
-				<div class="setting">
-					<div class="setting-title">
-						<div>Growth</div>
-					</div>
-					<div class="setting-input input-col-1">
-						<div class="title">Growth</div>
-						<input type="text" name="max-size" id="growth">
-					</div>
-					<div class="clear"></div>
-				</div>
-			</div>
-			<div class="column">
-				<div class="setting">
-					<div class="setting-title">
-						<div>Angular Vel</div>
-					</div>
-					<div class="setting-input input-col-1">
-						<div class="title">Value</div>
-						<input type="text" name="max-size" id="angular_velocity">
-					</div>
-					<div class="clear"></div>
-				</div>
-
-				<div class="setting">
-					<div class="setting-title">
-						<div>Gravitation</div>
-					</div>
-					<div class="setting-input input-col-1">
-						<div class="title">Value</div>
-						<input type="text" name="max-size" id="gravitation">
-					</div>
-					<div class="clear"></div>
-				</div>
-
-				<div class="setting">
-					<div class="setting-title">
-						<div>Wind</div>
-					</div>
-					<div class="setting-input input-col-1">
-						<div class="title">Value</div>
-						<input type="text" name="max-size" id="wind">
-					</div>
-					<div class="clear"></div>
-				</div>
-
-				<div class="setting">
-					<div class="setting-title">
-						<div>Life</div>
-					</div>
-					<div class="setting-input input-col-1">
-						<div class="title">Microseconds</div>
-						<input type="text" name="max-size" id="life">
-					</div>
-					<div class="clear"></div>
-				</div>
-
-				<div class="setting">
-					<div class="setting-title">
-						<div>Particles</div>
-					</div>
-					<div class="setting-input input-col-1">
-						<div class="title">Particles Per Second</div>
-						<input type="text" name="max-size" id="particles_per_second">
-					</div>
-					<div class="clear"></div>
-				</div>
-			</div>
-			<div class="column">
+		
+			<div class="emitter-rigth-edit">
 				<div class="setting">
 					<div class="setting-title">
 						<div>Start Color</div>
@@ -222,10 +90,10 @@
 
 				<div class="setting">
 					<div class="setting-title">
-						<div>Blend Src</div>
+						<div>Blend Mode</div>
 					</div>
-					<div class="setting-input input-col-1">
-						<div class="title">Source Mode</div>
+					<div class="setting-input input-col-2">
+						<div class="title">Source</div>
 						<select name="blend-src" id="blend_src">
 							<option value="0">ZERO</option>
 							<option value="1">ONE</option>
@@ -244,15 +112,8 @@
 							<option value="32772">ONE_MINUS_CONSTANT_ALPHA</option>
 						</select>
 					</div>
-					<div class="clear"></div>
-				</div>
-
-				<div class="setting">
-					<div class="setting-title">
-						<div>Blend Dst</div>
-					</div>
-					<div class="setting-input input-col-1">
-						<div class="title">Destination Mode</div>
+					<div class="setting-input input-col-2">
+						<div class="title">Destination</div>
 						<select name="blend-src" id="blend_dst">
 							<option value="0">ZERO</option>
 							<option value="1">ONE</option>
@@ -269,6 +130,169 @@
 							<option value="32771">CONSTANT_ALPHA</option>
 							<option value="32772">ONE_MINUS_CONSTANT_ALPHA</option>
 						</select>
+					</div>
+					<div class="clear"></div>
+				</div>
+			</div>
+		</div>
+		<div class="emitter-edit">
+			<div class="column">
+				<div class="setting">
+					<div class="setting-title">
+						<div>Position</div>
+					</div>
+					<div class="setting-input input-col-2">
+						<div class="title">X Position</div>
+						<input type="text" name="pos-x" id="position_x">
+					</div>
+					<div class="setting-input input-col-2">
+						<div class="title">Y Position</div>
+						<input type="text" name="pos-y" id="position_y">
+					</div>
+					<div class="clear"></div>
+				</div>
+
+				<div class="setting">
+					<div class="setting-title">
+						<div>Start Size</div>
+					</div>
+					<div class="setting-input input-col-2">
+						<div class="title">Min Size</div>
+						<input type="text" name="max-size" id="min_size">
+					</div>
+					<div class="setting-input input-col-2">
+						<div class="title">Max Size</div>
+						<input type="text" name="min-size" id="max_size">
+					</div>
+					<div class="clear"></div>
+				</div>
+
+				<div class="setting">
+					<div class="setting-title">
+						<div>Life</div>
+					</div>
+					<div class="setting-input input-col-2">
+						<div class="title">Min</div>
+						<input type="text" name="max-size" id="life-min">
+					</div>
+					<div class="setting-input input-col-2">
+						<div class="title">Max</div>
+						<input type="text" name="max-size" id="life-max">
+					</div>
+					<div class="clear"></div>
+				</div>
+
+				<div class="setting">
+					<div class="setting-title">
+						<div>Particles</div>
+					</div>
+					<div class="setting-input input-col-2">
+						<div class="title">Per Second</div>
+						<input type="text" name="max-size" id="particles_per_second">
+					</div>
+					<div class="setting-input input-col-2">
+						<div class="title">At Start</div>
+						<input type="text" name="max-size" id="particles_at_start">
+					</div>
+					<div class="clear"></div>
+				</div>
+
+				
+			</div>
+			<div class="column">
+
+				<div class="setting">
+					<div class="setting-title">
+						<div>Direction X</div>
+					</div>
+					<div class="setting-input input-col-2">
+						<div class="title">Max</div>
+						<input type="range" id="direction_x_max" max="1.0" min="-1.0" step="0.05">
+					</div>
+					<div class="setting-input input-col-2">
+						<div class="title">Min</div>
+						<input type="range" id="direction_x_min" max="1.0" min="-1.0" step="0.05">
+					</div>
+					<div class="clear"></div>
+				</div>
+
+				<div class="setting">
+					<div class="setting-title">
+						<div>Direction Y</div>
+					</div>
+					<div class="setting-input input-col-2">
+						<div class="title">Max</div>
+						<input type="range" id="direction_y_max" max="1.0" min="-1.0" step="0.05">
+					</div>
+					<div class="setting-input input-col-2">
+						<div class="title">Min</div>
+						<input type="range" id="direction_y_min" max="1.0" min="-1.0" step="0.05">
+					</div>
+					<div class="clear"></div>
+				</div>
+
+				<div class="setting">
+					<div class="setting-title">
+						<div>Velocity</div>
+					</div>
+					<div class="setting-input input-col-2">
+						<div class="title">Max</div>
+						<input type="range" id="velocity_max" max="5.0" min="-5.0" step="0.1">
+					</div>
+					<div class="setting-input input-col-2">
+						<div class="title">Min</div>
+						<input type="range" id="velocity_min" max="5.0" min="-5.0" step="0.1">
+					</div>
+					<div class="clear"></div>
+				</div>
+
+				<div class="setting">
+					<div class="setting-title">
+						<div>Forces</div>
+					</div>
+					<div class="setting-input input-col-2">
+						<div class="title">Gravity</div>
+						<input type="range" id="gravity" max="0.1" min="-0.1" step="0.001">
+					</div>
+					<div class="setting-input input-col-2">
+						<div class="title">Wind</div>
+						<input type="range" id="wind" max="0.1" min="-0.1" step="0.001">
+					</div>
+					<div class="clear"></div>
+				</div>
+				
+			</div>
+			<div class="column">
+				
+				<div class="setting">
+					<div class="setting-title">
+						<div>Growth</div>
+					</div>
+					<div class="setting-input input-col-1">
+						<div class="title">Growth</div>
+						<input type="text" name="max-size" id="growth">
+					</div>
+					<div class="clear"></div>
+				</div>
+
+				<div class="setting">
+					<div class="setting-title">
+						<div>Angular Vel</div>
+					</div>
+					<div class="setting-input input-col-1">
+						<div class="title">Value</div>
+						<input type="text" name="max-size" id="angular_velocity">
+					</div>
+					<div class="clear"></div>
+				</div>
+
+				<div class="setting">
+					<div class="setting-title">
+						<div>Emitter Type</div>
+					</div>
+					<div class="setting-input input-col-1">
+						<div class="title">Constant</div>
+						<input type="checkbox" name="max-size" id="emitter_type">
 					</div>
 					<div class="clear"></div>
 				</div>

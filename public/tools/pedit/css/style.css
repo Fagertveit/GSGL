@@ -80,7 +80,7 @@ button:hover {
 .emitter-list {
 	margin: 10px;
 	width: 380px;
-	height: 300px;
+	height: 142px;
 	border: 1px solid #444;
 	background-color: #252525;
 }
@@ -95,7 +95,7 @@ button:hover {
 	margin: 0;
 	padding: 0;
 	width: 380px;
-	height: 270px;
+	height: 112px;
 	overflow-y: scroll;
 }
 
@@ -120,6 +120,14 @@ button:hover {
 }
 
 /* Emitter Edit */
+.emitter-right-edit {
+	position: relative;
+	width: 380px;
+	height: 200px;
+	margin: 10px;
+	border: 1px solid #444;
+}
+
 .emitter-edit {
 	position: absolute;
 	top: 400px;

@@ -207,7 +207,7 @@ Application = function(params) {
 			var emitter = new GSGL.gl.particle.ParticleEmitter({
 				texture: this.particleTexture.texture,
 				program: this.particleProgram.program,
-				pos: {x: 200, y: 350},
+				pos: {x: 200, y: 200},
 			});
 
 			this.system.addEmitter(emitter);
@@ -233,22 +233,23 @@ Application = function(params) {
 			document.getElementById('max_size').value = this.system.emitters[this.activeEmitter].startSize.max;
 			document.getElementById('min_size').value = this.system.emitters[this.activeEmitter].startSize.min;
 
-			document.getElementById('velocity_x_max').value = this.system.emitters[this.activeEmitter].vel.max.x;
-			document.getElementById('velocity_x_min').value = this.system.emitters[this.activeEmitter].vel.min.x;
-			document.getElementById('velocity_y_max').value = this.system.emitters[this.activeEmitter].vel.max.y;
-			document.getElementById('velocity_y_min').value = this.system.emitters[this.activeEmitter].vel.min.y;
+			document.getElementById('direction_x_max').value = this.system.emitters[this.activeEmitter].dir.max.x;
+			document.getElementById('direction_x_min').value = this.system.emitters[this.activeEmitter].dir.min.x;
+			document.getElementById('direction_y_max').value = this.system.emitters[this.activeEmitter].dir.max.y;
+			document.getElementById('direction_y_min').value = this.system.emitters[this.activeEmitter].dir.min.y;
 
 			document.getElementById('growth').value = this.system.emitters[this.activeEmitter].growth;
-
 			document.getElementById('angular_velocity').value = this.system.emitters[this.activeEmitter].angularVel;
-
-			document.getElementById('gravitation').value = this.system.emitters[this.activeEmitter].gravitation;
-
+			document.getElementById('gravity').value = this.system.emitters[this.activeEmitter].gravity;
 			document.getElementById('wind').value = this.system.emitters[this.activeEmitter].wind;
 
-			document.getElementById('life').value = this.system.emitters[this.activeEmitter].life;
+			document.getElementById('life-max').value = this.system.emitters[this.activeEmitter].life.max;
+			document.getElementById('life-min').value = this.system.emitters[this.activeEmitter].life.min;
 
 			document.getElementById('particles_per_second').value = this.system.emitters[this.activeEmitter].particlesPerSecond;
+			document.getElementById('particles_at_start').value = this.system.emitters[this.activeEmitter].particlesAtStart;
+
+			document.getElementById('emitter_type').checked = this.system.emitters[this.activeEmitter].constant;
 
 			document.getElementById('start_color_red').value = this.system.emitters[this.activeEmitter].color[0];
 			document.getElementById('start_color_green').value = this.system.emitters[this.activeEmitter].color[1];
@@ -261,7 +262,6 @@ Application = function(params) {
 			document.getElementById('end_color_alpha').value = this.system.emitters[this.activeEmitter].color[3];
 
 			document.getElementById('blend_src').value = this.system.emitters[this.activeEmitter].blendSrc;
-
 			document.getElementById('blend_dst').value = this.system.emitters[this.activeEmitter].blendDst;
 		},
 
@@ -301,35 +301,51 @@ Application = function(params) {
 			}
 		},
 
-		valVelXMaxHandler : function(event) {
+		valDirXMaxHandler : function(event) {
 			var value = parseFloat(event.target.value);
 
 			if(this.validFloat(value)) {
-				this.system.emitters[this.activeEmitter].vel.max.x = value;
+				this.system.emitters[this.activeEmitter].dir.max.x = value;
 			}
 		},
 
-		valVelXMinHandler : function(event) {
+		valDirXMinHandler : function(event) {
 			var value = parseFloat(event.target.value);
 
 			if(this.validFloat(value)) {
-				this.system.emitters[this.activeEmitter].vel.min.x = value;
+				this.system.emitters[this.activeEmitter].dir.min.x = value;
 			}
 		},
 
-		valVelYMaxHandler : function(event) {
+		valDirYMaxHandler : function(event) {
 			var value = parseFloat(event.target.value);
 
 			if(this.validFloat(value)) {
-				this.system.emitters[this.activeEmitter].vel.max.y = value;
+				this.system.emitters[this.activeEmitter].dir.max.y = value;
 			}
 		},
 
-		valVelYMinHandler : function(event) {
+		valDirYMinHandler : function(event) {
 			var value = parseFloat(event.target.value);
 
 			if(this.validFloat(value)) {
-				this.system.emitters[this.activeEmitter].vel.min.y = value;
+				this.system.emitters[this.activeEmitter].dir.min.y = value;
+			}
+		},
+
+		valVelocityMaxHandler : function(event) {
+			var value = parseFloat(event.target.value);
+
+			if(this.validFloat(value)) {
+				this.system.emitters[this.activeEmitter].vel.max = value;
+			}
+		},
+
+		valVelocityMinHandler : function(event) {
+			var value = parseFloat(event.target.value);
+
+			if(this.validFloat(value)) {
+				this.system.emitters[this.activeEmitter].vel.min = value;
 			}
 		},
 
@@ -353,7 +369,7 @@ Application = function(params) {
 			var value = parseFloat(event.target.value);
 
 			if(this.validFloat(value)) {
-				this.system.emitters[this.activeEmitter].gravitation = value;
+				this.system.emitters[this.activeEmitter].gravity = value;
 			}
 		},
 
@@ -365,20 +381,42 @@ Application = function(params) {
 			}
 		},
 
-		valLifeHandler : function(event) {
+		valLifeMaxHandler : function(event) {
 			var value = parseInt(event.target.value);
 
 			if(this.validInt(value)) {
-				this.system.emitters[this.activeEmitter].life = value;
+				this.system.emitters[this.activeEmitter].life.max = value;
 			}
 		},
 
-		valParticlesHandler : function(event) {
+		valLifeMinHandler : function(event) {
+			var value = parseInt(event.target.value);
+
+			if(this.validInt(value)) {
+				this.system.emitters[this.activeEmitter].life.min = value;
+			}
+		},
+
+		valParticlesPerSecondHandler : function(event) {
 			var value = parseInt(event.target.value);
 
 			if(this.validInt(value)) {
 				this.system.emitters[this.activeEmitter].particlesPerSecond = value;
 			}
+		},
+
+		valParticlesAtStartHandler : function(event) {
+			var value = parseInt(event.target.value);
+
+			if(this.validInt(value)) {
+				this.system.emitters[this.activeEmitter].particlesAtStart = value;
+			}
+		},
+
+		valEmitterTypeHandler : function(event) {
+			var value = event.target.checked;
+
+			this.system.emitters[this.activeEmitter].constant = value;
 		},
 
 		valStartColorRedHandler : function(event) {
@@ -468,20 +506,28 @@ Application = function(params) {
 				_this.valSizeMinHandler(event);
 			}, false);
 
-			document.getElementById('velocity_x_max').addEventListener('keyup',function(event) {
-				_this.valVelXMaxHandler(event);
+			document.getElementById('direction_x_max').addEventListener('change',function(event) {
+				_this.valDirXMaxHandler(event);
 			}, false);
 
-			document.getElementById('velocity_x_min').addEventListener('keyup',function(event) {
-				_this.valVelXMinHandler(event);
+			document.getElementById('direction_x_min').addEventListener('change',function(event) {
+				_this.valDirXMinHandler(event);
 			}, false);
 
-			document.getElementById('velocity_y_max').addEventListener('keyup',function(event) {
-				_this.valVelYMaxHandler(event);
+			document.getElementById('direction_y_max').addEventListener('change',function(event) {
+				_this.valDirYMaxHandler(event);
 			}, false);
 
-			document.getElementById('velocity_y_min').addEventListener('keyup',function(event) {
-				_this.valVelYMinHandler(event);
+			document.getElementById('direction_y_min').addEventListener('change',function(event) {
+				_this.valDirYMinHandler(event);
+			}, false);
+
+			document.getElementById('velocity_max').addEventListener('change', function(event) {
+				_this.valVelocityMaxHandler(event);
+			}, false);
+
+			document.getElementById('velocity_min').addEventListener('change', function(event) {
+				_this.valVelocityMinHandler(event);
 			}, false);
 
 			document.getElementById('growth').addEventListener('keyup',function(event) {
@@ -492,20 +538,32 @@ Application = function(params) {
 				_this.valAngularVelHandler(event);
 			}, false);
 
-			document.getElementById('gravitation').addEventListener('keyup',function(event) {
+			document.getElementById('gravity').addEventListener('change',function(event) {
 				_this.valGravitationHandler(event);
 			}, false);
 
-			document.getElementById('wind').addEventListener('keyup',function(event) {
+			document.getElementById('wind').addEventListener('change',function(event) {
 				_this.valWindHandler(event);
 			}, false);
 
-			document.getElementById('life').addEventListener('keyup',function(event) {
-				_this.valLifeHandler(event);
+			document.getElementById('life-max').addEventListener('keyup',function(event) {
+				_this.valLifeMaxHandler(event);
+			}, false);
+
+			document.getElementById('life-min').addEventListener('keyup',function(event) {
+				_this.valLifeMinHandler(event);
+			}, false);
+
+			document.getElementById('emitter_type').addEventListener('change', function(event) {
+				_this.valEmitterTypeHandler(event);
 			}, false);
 
 			document.getElementById('particles_per_second').addEventListener('keyup',function(event) {
-				_this.valParticlesHandler(event);
+				_this.valParticlesPerSecondHandler(event);
+			}, false);
+
+			document.getElementById('particles_at_start').addEventListener('keyup',function(event) {
+				_this.valParticlesAtStartHandler(event);
 			}, false);
 
 			document.getElementById('start_color_red').addEventListener('keyup',function(event) {

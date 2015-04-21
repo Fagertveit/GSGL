@@ -1,15 +1,9 @@
 GSGL.gl.particle = {
 	Particle : function(params) {
 		var particle = {
-			pos : {
-				x : 0,
-				y : 0,
-			},
-			vel : {
-				x : 0.1,
-				y : -0.1,
-			},
-			angle : 0,
+			pos : {},
+			vel : 1,
+			dir : {},
 			angleVel : 0,
 			size : 1,
 			startLife : 1000,
@@ -27,10 +21,9 @@ GSGL.gl.particle = {
 			update : function(gravity, wind, growth, delta) {
 				this.life -= delta;
 				this.size += growth;
-				//this.vel.y += (gravity * delta);
-				//this.vel.x += (wind * delta);
-				this.pos.x += (this.vel.x);
-				this.pos.y += (this.vel.y);
+				this.dir.y += gravity;
+				this.dir.x += wind;
+				this.pos = this.pos.add(this.dir.scale(this.vel));
 			},
 
 			isDead : function() {
@@ -62,27 +55,38 @@ GSGL.gl.particle = {
 				x : 0,
 				y : 0,
 			},
-			vel : {
+			dir : {
 				max : {
-					x : 0.8,
-					y : -1,
+					x : 0,
+					y : 0,
 				},
 				min : {
-					x : -0.8,
-					y : -3,
+					x : 0,
+					y : 0,
 				},
 			},
-			startSize : {
-				min : 8.0,
-				max : 16.0
+			vel : {
+				min : 2,
+				max : 5
 			},
-			growth : -0.1,
-			color : [1.0, 0.0, 0.0, 1.0],
+			startSize : {
+				min : 16.0,
+				max : 32.0
+			},
+			constant : false,
+			growth : 0.1,
+			color : [0.9, 0.5, 0.1, 0.4],
 			angularVel : 0,
-			gravitation : 0,
+			gravity : 0,
 			wind : 0,
-			life : 1000,
+			life : {
+				min : 200,
+				max : 500
+			},
 			particlesPerSecond : 100,
+			particlesAtStart : 100,
+			lifeCycle : 1000,
+			currLife : 0,
 			shaderManager : {},
 			blendSrc : gl.SRC_ALPHA,
 			blendDst : gl.ONE,
@@ -103,18 +107,32 @@ GSGL.gl.particle = {
 				this.vertices.splice(0, this.vertices.length);
 				this.sizes.splice(0, this.sizes.length);
 
-				var numParticles = Math.ceil((delta / 1000) * this.particlesPerSecond);
-				var i = 0;
+				if(this.constant) {
+					var numParticles = Math.ceil((delta / 1000) * this.particlesPerSecond);
+					var i = 0;
 
-				for(i; i < numParticles; i += 1) {
-					this.addParticle();
+					for(i; i < numParticles; i += 1) {
+						this.addParticle();
+					}
+				} else {
+					this.currLife -= delta;
+
+					if(this.currLife < 0) {
+						var i = 0;
+
+						for(i; i < this.particlesAtStart; i += 1) {
+							this.addParticle();
+						}
+
+						this.currLife = this.lifeCycle;
+					}
 				}
 
 				i = 0;
 				var len = this.particles.length;
 
 				for(i; i < len; i += 1) {
-					this.particles[i].update(this.gravitation, this.wind, this.growth, delta);
+					this.particles[i].update(this.gravity, this.wind, this.growth, delta);
 
 					if(this.particles[i].isDead()) {
 						this.particles.splice(i, 1);
@@ -129,13 +147,14 @@ GSGL.gl.particle = {
 
 			addParticle : function() {
 				var particle = new GSGL.gl.particle.Particle({
-					pos : {x : this.pos.x, y : this.pos.y},
-					vel : {x : this.randomMinMax(this.vel.min.x, this.vel.max.x), y : this.randomMinMax(this.vel.min.y, this.vel.max.y)},
+					pos : new GSGL.geometry.Vector2D(this.pos.x, this.pos.y),
+					vel : this.randomMinMax(this.vel.min, this.vel.max),
+					dir : new GSGL.geometry.Vector2D(this.randomMinMax(this.dir.min.x, this.dir.max.x), this.randomMinMax(this.dir.min.y, this.dir.max.y)),
 					angle : 0,
 					angleVel : this.angleVel,
 					size : this.randomMinMax(this.startSize.min, this.startSize.max),
 					startLife : this.life,
-					life : this.life,
+					life : this.randomMinMax(this.life.min, this.life.max),
 					alpha : 1.0,
 				});
 
