@@ -17,6 +17,7 @@ Application = function(params) {
 		frames : 0,
 		logger : new GSGL.utility.Logger({type: "Application"}),
 		surface : new GSGL.surface.Surface3D({id: "gsgl-canvas", width: 380, height: 380}),
+		renderManager : new GSGL.gl.render.RenderManager2D({}),
 		// Creating the basic shapes
 		system : {},
 		activeEmitter : 0,
@@ -33,6 +34,7 @@ Application = function(params) {
 			// Global collision detection, takes to shapes and checks if they intersects.
 			$ajax = new GSGL.utility.Ajax({});
 			$resources = new GSGL.resource.ResourceManager();
+
 			//$renderManager = new GSGL.surface.RenderManager();
 
 			this.surface.initContext();
@@ -42,16 +44,23 @@ Application = function(params) {
 			this.particleProgram = new GSGL.gl.shader.ShaderManager({});
 			this.particleProgram.initShaders("data/2dParticle.fs", "data/2dParticle.vs");
 
+			this.shaderProgram = new GSGL.gl.shader.ShaderManager({});
+			this.shaderProgram.initShaders("data/2d.fs", "data/2d.vs");
+
+			this.renderManager.program = this.shaderProgram.program;
+
 			this.system = new GSGL.gl.particle.ParticleSystem({});
+			this.sprite = new GSGL.gl.sprite.Sprite({width: 380, height: 380});
+			this.sprite.setUV(0, 0, 1, 1);
 
 			this.addEmitterHandler();
 
 			this.generateEmitterList();
 			this.editEmitterHandler();
 
-
 			this.addEventListeners();
 			this.start();
+			gl.clearColor(0.0, 0.0, 0.0, 1.0);
 		},
 
 		step : function() {
@@ -108,7 +117,37 @@ Application = function(params) {
 			gl.clear(gl.COLOR_BUFFER_BIT);
 			gl.enable(gl.BLEND);
 
+
 			this.system.render();
+		},
+
+		renderToFBO : function() {
+			gl.clear(gl.COLOR_BUFFER_BIT);
+			gl.enable(gl.BLEND);
+
+			//this.system.render();
+			this.system.bindFBO();
+			gl.bindFramebuffer(gl.FRAMEBUFFER, this.system.FBO);
+
+			this.system.render();
+
+			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+        	gl.clear(gl.COLOR_BUFFER_BIT);
+
+        	this.sprite.texture = this.system.FBOTexture;
+
+        	this.renderManager.addRenderCall(this.sprite.render(0, 0, true));
+        	this.renderManager.render();
+		},
+
+		pushSprite : function() {
+			var list = document.getElementById("spritelist");
+			var sprite = document.createElement("img");
+
+			sprite.src = this.surface.toUrl();
+
+			list.appendChild(sprite);
 		},
 
 		updateStatus : function() {

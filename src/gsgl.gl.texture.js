@@ -8,6 +8,7 @@ GSGL.gl.texture = {
 			height : 0,
 			texture : null,
 			isLoaded : false,
+			isReady : false,
 			onLoaded : {},
 			src : "",
 
@@ -41,6 +42,8 @@ GSGL.gl.texture = {
 				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
 				gl.bindTexture(gl.TEXTURE_2D, null);
+
+				this.isReady = true;
 			},
 
 			loadedHandler : function(event) {

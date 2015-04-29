@@ -79,6 +79,8 @@ KKD.units = {
 			type : 0,
 			level : 1,
 			lastAttack : 0,
+			sprite : {},
+			texture : {},
 
 			constructor : function(params) {
 				for(key in params) {
@@ -87,6 +89,9 @@ KKD.units = {
 					}
 				}
 				this.init();
+
+				this.sprite = new GSGL.gl.sprite.Sprite({width: this.range + this.range, height: this.range + this.range, texture: this.texture, color: new GSGL.graphics.Color({r: 0, g: 200, b: 0, a: 0.8}), hasColor: true});
+				this.sprite.setUVPixels(2048, 2048, 0, 768, 256, 256);
 			},
 
 			init : function() {
@@ -116,14 +121,18 @@ KKD.units = {
 			},
 
 			render : function(delta) {
+				/*
 				this.shape.render();
 				this.radius.render();
 				var scale = this.dir.scale(20);
 				scale.renderDirection(this.pos.x, this.pos.y);
 				this.dir.renderArrow(this.pos.x + scale.x, this.pos.y + scale.y);
+				*/
+				this.sprite.render(this.pos.x - this.range, this.pos.y - this.range);
 			},
 
 			renderInfo : function(delta) {
+				/*
 				$g.save();
 				$g.textAlign = "left";
 				$g.fillText(this.name, 15, 60);
@@ -132,6 +141,7 @@ KKD.units = {
 				$g.fillText("Speed: " + KKD.units.ATTACK_SPEED[this.speed], 15, 120);
 				$g.fillText("Attack Type: " + KKD.units.ATTACK_TYPE[this.type], 15, 140);
 				$g.restore();
+				*/
 			},
 		};
 		unit.constructor(params);

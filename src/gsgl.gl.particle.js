@@ -1,9 +1,15 @@
 GSGL.gl.particle = {
 	Particle : function(params) {
 		var particle = {
-			pos : {},
+			pos : {
+				x: 0,
+				y: 0,
+			},
 			vel : 1,
-			dir : {},
+			dir : {
+				x: 0,
+				y: 0,
+			},
 			angleVel : 0,
 			size : 1,
 			startLife : 1000,
@@ -23,7 +29,8 @@ GSGL.gl.particle = {
 				this.size += growth;
 				this.dir.y += gravity;
 				this.dir.x += wind;
-				this.pos = this.pos.add(this.dir.scale(this.vel));
+				this.pos.x += (this.dir.x * this.vel);
+				this.pos.y += (this.dir.y * this.vel);
 			},
 
 			isDead : function() {
@@ -147,9 +154,9 @@ GSGL.gl.particle = {
 
 			addParticle : function() {
 				var particle = new GSGL.gl.particle.Particle({
-					pos : new GSGL.geometry.Vector2D(this.pos.x, this.pos.y),
+					pos : {x: this.pos.x, y: this.pos.y},
 					vel : this.randomMinMax(this.vel.min, this.vel.max),
-					dir : new GSGL.geometry.Vector2D(this.randomMinMax(this.dir.min.x, this.dir.max.x), this.randomMinMax(this.dir.min.y, this.dir.max.y)),
+					dir : {x: this.randomMinMax(this.dir.min.x, this.dir.max.x), y: this.randomMinMax(this.dir.min.y, this.dir.max.y)},
 					angle : 0,
 					angleVel : this.angleVel,
 					size : this.randomMinMax(this.startSize.min, this.startSize.max),
@@ -209,6 +216,11 @@ GSGL.gl.particle = {
 	ParticleSystem : function(params) {
 		var particleSystem = {
 			emitters : [],
+			// FBO thingamajigs
+			FBOTexture : {},
+			FBOWidth : 512,
+			FBOHeight : 512,
+			FBO : {},
 
 			constructor : function() {
 				for(key in params) {
@@ -261,7 +273,34 @@ GSGL.gl.particle = {
 				for(i; i < len; i += 1) {
 					this.emitters[i].render(delta);
 				}
-			}
+			},
+
+			bindFBO : function() {
+				this.FBO = gl.createFramebuffer();
+				gl.bindFramebuffer(gl.FRAMEBUFFER, this.FBO);
+
+				this.FBO.width = this.FBOWidth;
+				this.FBO.height = this.FBOHeight;
+
+				this.FBOTexture = gl.createTexture();
+				gl.bindTexture(gl.TEXTURE_2D, this.FBOTexture);
+				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+
+				gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.FBOWidth, this.FBOHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+
+				var renderBuffer = gl.createRenderbuffer();
+
+				gl.bindRenderbuffer(gl.RENDERBUFFER, renderBuffer);
+				gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, this.FBOWidth, this.FBOHeight);
+
+				gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.FBOTexture, 0);
+				gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, renderBuffer);
+
+				gl.bindTexture(gl.TEXTURE_2D, null);
+				gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+				gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+			},
 		};
 		particleSystem.constructor(params);
 

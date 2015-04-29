@@ -2,7 +2,6 @@ KKD.state.Menu = function(params) {
 	var menu = {
 		parent : {},
 		logger : new GSGL.utility.Logger({type: "KKD Menu"}),
-		surface : {},
 		menuBtns : {},
 		aboutBtns : {},
 		helpBtns : {},
@@ -20,82 +19,109 @@ KKD.state.Menu = function(params) {
 		init : function() {
 			var _this = this;
 
-			// Create the menu buttons
+			// Load the main texture
+			this.texture = new GSGL.gl.texture.Texture({src: "img/menu_tex01.png"});
+
+			// Load some sprites yoh
+			this.background = new GSGL.gl.sprite.Sprite({width: 800, height: 600, texture: this.texture.texture});
+			this.background.setUVPixels(1024, 1024, 0, 0, 800, 600);
+
+			// Menu btn sprites
+			var startBtnInactive = new GSGL.gl.sprite.Sprite({width: 128, height: 48, texture: this.texture.texture});
+			startBtnInactive.setUVPixels(1024, 1024, 0, 640, 128, 48);
+
+			var startBtnActive = new GSGL.gl.sprite.Sprite({width: 128, height: 48, texture: this.texture.texture});
+			startBtnActive.setUVPixels(1024, 1024, 128, 640, 128, 48);
+
 			this.menuBtns = {
-				start : new GSGL.ui.Button({
-					title: "Start Game",
-					callback: function(){
+				start : new GSGL.gl.ui.Button({
+					callback: function() {
 						_this.startGame();
 					},
 					shape: new GSGL.geometry.Rectangle({
-						pos: new GSGL.geometry.Point(220, 150),
-						width: 200,
-						height: 30
+						pos: new GSGL.geometry.Point(336, 300),
+						width: 128,
+						height: 48
 					}),
+					sprites: [
+						startBtnInactive,
+						startBtnActive,
+						startBtnActive
+					],
+					title: "Start"
 				}),
-				editor : new GSGL.ui.Button({
-					title: "Editor",
-					callback: function() {
-						_this.startEditor();
-					},
-					shape: new GSGL.geometry.Rectangle({
-						pos: new GSGL.geometry.Point(220, 200),
-						width: 200,
-						height: 30
-					}),
-				}),
-				about : new GSGL.ui.Button({
-					title: "About",
+				about : new GSGL.gl.ui.Button({
 					callback: function() {
 						_this.changeState("about");
 					},
 					shape: new GSGL.geometry.Rectangle({
-						pos: new GSGL.geometry.Point(220, 250),
-						width: 200,
-						height: 30
+						pos: new GSGL.geometry.Point(336, 364),
+						width: 128,
+						height: 48
 					}),
+					sprites: [
+						startBtnInactive,
+						startBtnActive,
+						startBtnActive
+					],
+					title: "About"
 				}),
-				help : new GSGL.ui.Button({
-					title: "Help",
+				help : new GSGL.gl.ui.Button({
 					callback: function() {
 						_this.changeState("help");
 					},
 					shape: new GSGL.geometry.Rectangle({
-						pos: new GSGL.geometry.Point(220, 300),
-						width: 200,
-						height: 30
+						pos: new GSGL.geometry.Point(336, 428),
+						width: 128,
+						height: 48
 					}),
-				}),
+					sprites: [
+						startBtnInactive,
+						startBtnActive,
+						startBtnActive
+					],
+					title: "Help"
+				})
 			};
 
 			// Create the About buttons
 			this.aboutBtns = {
-				back : new GSGL.ui.Button({
-					title: "Back to main",
+				back : new GSGL.gl.ui.Button({
 					callback: function() {
 						_this.changeState("main");
 					},
 					shape: new GSGL.geometry.Rectangle({
-						pos: new GSGL.geometry.Point(220, 430),
-						width: 200,
-						height: 30
+						pos: new GSGL.geometry.Point(10, 542),
+						width: 128,
+						height: 48
 					}),
-				}),
+					sprites: [
+						startBtnInactive,
+						startBtnActive,
+						startBtnActive
+					],
+					title: "<- Back"
+				})
 			};
 
 			// Create the Help buttons
 			this.helpBtns = {
-				back : new GSGL.ui.Button({
-					title: "Back to main",
+				back : new GSGL.gl.ui.Button({
 					callback: function() {
 						_this.changeState("main");
 					},
 					shape: new GSGL.geometry.Rectangle({
-						pos: new GSGL.geometry.Point(220, 430),
-						width: 200,
-						height: 30
+						pos: new GSGL.geometry.Point(10, 542),
+						width: 128,
+						height: 48
 					}),
-				}),
+					sprites: [
+						startBtnInactive,
+						startBtnActive,
+						startBtnActive
+					],
+					title: "<- Back"
+				})
 			};
 		},
 
@@ -116,8 +142,8 @@ KKD.state.Menu = function(params) {
 		},
 
 		render : function(delta) {
-			this.surface.clear("#ffffff");
-			$g = this.surface.getContext();
+			gl.clear(gl.COLOR_BUFFER_BIT);
+			gl.enable(gl.BLEND);
 
 			switch(this.state) {
 				case "main":
@@ -132,34 +158,26 @@ KKD.state.Menu = function(params) {
 				default:
 					this.renderMain(delta);
 			}
-		},
-
-		renderMain : function(delta) {
-			$g.save();
-			$g.font = "48px Helvetica";
-			$g.textAlign = "center";
-			$g.fillText("Kvite Krist Defense", 320 , 50);
-			$g.restore();
-
-			this.menuBtns.start.render();
-			this.menuBtns.editor.render();
-			this.menuBtns.about.render();
-			this.menuBtns.help.render();
+			$font.flush();
+			$renderManager.render();
 		},
 
 		updateMain : function(delta) {
-			this.menuBtns.start.update();
-			this.menuBtns.editor.update();
+			this.menuBtns.start.update(delta);
 			this.menuBtns.about.update();
 			this.menuBtns.help.update();
 		},
 
+		renderMain : function(delta) {
+			this.background.render(0, 0);
+
+			this.menuBtns.start.render();
+			this.menuBtns.about.render();
+			this.menuBtns.help.render();
+		},
+
 		renderAbout : function(delta) {
-			$g.save();
-			$g.font = "48px Helvetica";
-			$g.textAlign = "center";
-			$g.fillText("About", 320 , 50);
-			$g.restore();
+			this.background.render(0, 0);
 
 			this.aboutBtns.back.render();
 		},
@@ -169,11 +187,7 @@ KKD.state.Menu = function(params) {
 		},
 
 		renderHelp : function(delta) {
-			$g.save();
-			$g.font = "48px Helvetica";
-			$g.textAlign = "center";
-			$g.fillText("Help", 320 , 50);
-			$g.restore();
+			this.background.render(0, 0);
 
 			this.helpBtns.back.render();
 		},

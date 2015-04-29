@@ -135,7 +135,7 @@ GSGL.surface = {
 			},
 
 			toUrl : function() {
-				return this.container.toDataURL("image/png");
+				return this.canvas.toDataURL("image/png");
 			},
 		};
 		surface3d.constructor(params);

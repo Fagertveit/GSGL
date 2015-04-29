@@ -154,7 +154,7 @@ GSGL.gl.sprite = {
 				$renderManager.addRenderCall(renderCall);
 			},
 
-			renderSub : function(x, y, subX, subY, subWidth, subHeight) {
+			renderSub : function(x, y, subX, subY, subWidth, subHeight, returnCall) {
 				var suv = [];
 				suv[0] = parseFloat(subX) / parseFloat(this.width);
 				suv[1] = parseFloat(subY) / parseFloat(this.height);
@@ -174,7 +174,12 @@ GSGL.gl.sprite = {
 						indices : [0, 1, 2, 1, 2, 3],
 						numIndices : 6
 				};
-				$renderManager.addRenderCall(renderCall);
+
+				if(returnCall) {
+					return renderCall;
+				} else {
+					$renderManager.addRenderCall(renderCall);
+				}
 			},
 		};
 		sprite.constructor(params);

@@ -49,8 +49,7 @@ KKD.state.Game = function(params) {
 	var menu = {
 		parent : {},
 		logger : new GSGL.utility.Logger({type: "KKD Game"}),
-		surface : {},
-		map : new KKD.Map({
+		path : new KKD.Map({
 			paths: [
 				new GSGL.geometry.BSpline({
 					points: [
@@ -75,7 +74,7 @@ KKD.state.Game = function(params) {
 		tempUnit : {},
 		activeUnit : {},
 		activeEnemy : {},
-		activeArea : new GSGL.geometry.Rectangle({pos: new GSGL.geometry.Point(170, 10), width: 460, height: 460}),
+		activeArea : new GSGL.geometry.Rectangle({pos: new GSGL.geometry.Point(216, 14), width: 569, height: 568}),
 
 		constructor : function(params) {
 			for(key in params) {
@@ -88,165 +87,249 @@ KKD.state.Game = function(params) {
 
 		init : function() {
 			var _this = this;
-			// Add a cult!
+			// Load the main texture
+			this.texture = new GSGL.gl.texture.Texture({src: "img/ingame_tex01.png"});
+
+			// Load some sprites yoh
+			this.background = new GSGL.gl.sprite.Sprite({width: 800, height: 600, texture: this.texture.texture});
+			this.background.setUVPixels(2048, 2048, 0, 0, 800, 600);
+
+			this.map = new GSGL.gl.sprite.Sprite({width: 569, height: 568, texture: this.texture.texture});
+			this.map.setUVPixels(2048, 2048, 832, 0, 569, 568);
+
+			// Menu btn sprites
+			this.bigBtnInactive = new GSGL.gl.sprite.Sprite({width: 128, height: 48, texture: this.texture.texture});
+			this.bigBtnInactive.setUVPixels(2048, 2048, 0, 640, 128, 48);
+
+			this.bigBtnActive = new GSGL.gl.sprite.Sprite({width: 128, height: 48, texture: this.texture.texture});
+			this.bigBtnActive.setUVPixels(2048, 2048, 128, 640, 128, 48);
+
+			this.smallBtnInactive = new GSGL.gl.sprite.Sprite({width: 48, height: 48, texture: this.texture.texture});
+			this.smallBtnInactive.setUVPixels(2048, 2048, 0, 704, 48, 48);
+
+			this.smallBtnActive = new GSGL.gl.sprite.Sprite({width: 48, height: 48, texture: this.texture.texture});
+			this.smallBtnActive.setUVPixels(2048, 2048, 48, 704, 48, 48);
+
 			this.cult = new KKD.enemies.Cult({
-				path: this.map.paths[0]
+				path: this.path.paths[0],
+				texture: this.texture.texture
 			});
 
-			// Add some test units
-			
 			// Buttons
 			this.buttons = {
-				pause : new GSGL.ui.Button({
-					shape : new GSGL.geometry.Rectangle({
-						pos : new GSGL.geometry.Point(10, 440),
-						width: 150,
-						height: 30
-					}),
-					title: "Pause",
+				pause : new GSGL.gl.ui.Button({
 					callback: function() {
 						_this.pause();
-					}
-				}),
-				nextWave : new GSGL.ui.Button({
-					shape : new GSGL.geometry.Rectangle({
-						pos : new GSGL.geometry.Point(10, 400),
-						width: 150,
-						height: 30
+					},
+					shape: new GSGL.geometry.Rectangle({
+						pos: new GSGL.geometry.Point(10, 480),
+						width: 128,
+						height: 48
 					}),
-					title: "Next Wave!",
+					sprites: [
+						this.bigBtnInactive,
+						this.bigBtnActive,
+						this.bigBtnActive
+					],
+					title: "Pause"
+				}),
+				nextWave : new GSGL.gl.ui.Button({
 					callback: function() {
 						_this.triggerNextWave();
-					}
-				}),
-				cancel : new GSGL.ui.Button({
-					shape : new GSGL.geometry.Rectangle({
-						pos : new GSGL.geometry.Point(114, 346),
-						width: 46,
-						height: 46
+					},
+					shape: new GSGL.geometry.Rectangle({
+						pos: new GSGL.geometry.Point(10, 420),
+						width: 128,
+						height: 48
 					}),
-					title: "X",
+					sprites: [
+						this.bigBtnInactive,
+						this.bigBtnActive,
+						this.bigBtnActive
+					],
+					title: "Next Wave!"
+				}),
+				cancel : new GSGL.gl.ui.Button({
 					callback: function() {
 						_this.cancelSelection();
-					}
-				})
+					},
+					shape: new GSGL.geometry.Rectangle({
+						pos: new GSGL.geometry.Point(10, 360),
+						width: 128,
+						height: 48
+					}),
+					sprites: [
+						this.bigBtnInactive,
+						this.bigBtnActive,
+						this.bigBtnActive
+					],
+					title: "Pause"
+				}),
 			};
 
-			// Units buttons
 			this.unitsButtons = [
-				new GSGL.ui.Button({
-					shape : new GSGL.geometry.Rectangle({
-						pos : new GSGL.geometry.Point(10, 200),
-						width: 46,
-						height: 46
-					}),
-					title: "FT",
+				new GSGL.gl.ui.Button({
 					callback: function() {
 						_this.selectUnit("foresttroll");
-					}
-				}),
-				new GSGL.ui.Button({
-					shape : new GSGL.geometry.Rectangle({
-						pos : new GSGL.geometry.Point(62, 200),
-						width: 46,
-						height: 46
+					},
+					shape: new GSGL.geometry.Rectangle({
+						pos: new GSGL.geometry.Point(10, 240),
+						width: 48,
+						height: 48
 					}),
-					title: "MT",
+					sprites: [
+						this.smallBtnInactive,
+						this.smallBtnActive,
+						this.smallBtnActive
+					],
+					title: "FT"
+				}),
+				new GSGL.gl.ui.Button({
 					callback: function() {
 						_this.selectUnit("mountaintroll");
-					}
-				}),
-				new GSGL.ui.Button({
-					shape : new GSGL.geometry.Rectangle({
-						pos : new GSGL.geometry.Point(114, 200),
-						width: 46,
-						height: 46
+					},
+					shape: new GSGL.geometry.Rectangle({
+						pos: new GSGL.geometry.Point(62, 240),
+						width: 48,
+						height: 48
 					}),
-					title: "V",
+					sprites: [
+						this.smallBtnInactive,
+						this.smallBtnActive,
+						this.smallBtnActive
+					],
+					title: "MT"
+				}),
+				new GSGL.gl.ui.Button({
 					callback: function() {
 						_this.selectUnit("vaetir");
-					}
-				}),
-				new GSGL.ui.Button({
-					shape : new GSGL.geometry.Rectangle({
-						pos : new GSGL.geometry.Point(10, 254),
-						width: 46,
-						height: 46
+					},
+					shape: new GSGL.geometry.Rectangle({
+						pos: new GSGL.geometry.Point(124, 240),
+						width: 48,
+						height: 48
 					}),
-					title: "H",
+					sprites: [
+						this.smallBtnInactive,
+						this.smallBtnActive,
+						this.smallBtnActive
+					],
+					title: "V"
+				}),
+				new GSGL.gl.ui.Button({
 					callback: function() {
 						_this.selectUnit("huldra");
-					}
-				}),
-				new GSGL.ui.Button({
-					shape : new GSGL.geometry.Rectangle({
-						pos : new GSGL.geometry.Point(62, 254),
-						width: 46,
-						height: 46
+					},
+					shape: new GSGL.geometry.Rectangle({
+						pos: new GSGL.geometry.Point(10, 300),
+						width: 48,
+						height: 48
 					}),
-					title: "T",
+					sprites: [
+						this.smallBtnInactive,
+						this.smallBtnActive,
+						this.smallBtnActive
+					],
+					title: "H"
+				}),
+				new GSGL.gl.ui.Button({
 					callback: function() {
-						_this.selectUnit("tompte");
-					}
-				}),
-				new GSGL.ui.Button({
-					shape : new GSGL.geometry.Rectangle({
-						pos : new GSGL.geometry.Point(114, 254),
-						width: 46,
-						height: 46
+						_this.selectUnit("tomte");
+					},
+					shape: new GSGL.geometry.Rectangle({
+						pos: new GSGL.geometry.Point(62, 300),
+						width: 48,
+						height: 48
 					}),
-					title: "S",
+					sprites: [
+						this.smallBtnInactive,
+						this.smallBtnActive,
+						this.smallBtnActive
+					],
+					title: "T"
+				}),
+				new GSGL.gl.ui.Button({
 					callback: function() {
 						_this.selectUnit("svartalvir");
-					}
+					},
+					shape: new GSGL.geometry.Rectangle({
+						pos: new GSGL.geometry.Point(124, 300),
+						width: 48,
+						height: 48
+					}),
+					sprites: [
+						this.smallBtnInactive,
+						this.smallBtnActive,
+						this.smallBtnActive
+					],
+					title: "S"
 				}),
 			];
 
-			// Unit buttons
 			this.unitButtons = [
-				new GSGL.ui.Button({
-					shape : new GSGL.geometry.Rectangle({
-						pos : new GSGL.geometry.Point(10, 200),
-						width: 46,
-						height: 46
-					}),
-					title: "D",
+				new GSGL.gl.ui.Button({
 					callback: function() {
 						_this.upgradeUnit("damage");
-					}
-				}),
-				new GSGL.ui.Button({
-					shape : new GSGL.geometry.Rectangle({
-						pos : new GSGL.geometry.Point(62, 200),
-						width: 46,
-						height: 46
+					},
+					shape: new GSGL.geometry.Rectangle({
+						pos: new GSGL.geometry.Point(10, 240),
+						width: 48,
+						height: 48
 					}),
-					title: "R",
+					sprites: [
+						this.smallBtnInactive,
+						this.smallBtnActive,
+						this.smallBtnActive
+					],
+					title: "D"
+				}),
+				new GSGL.gl.ui.Button({
 					callback: function() {
 						_this.upgradeUnit("range");
-					}
-				}),
-				new GSGL.ui.Button({
-					shape : new GSGL.geometry.Rectangle({
-						pos : new GSGL.geometry.Point(114, 200),
-						width: 46,
-						height: 46
+					},
+					shape: new GSGL.geometry.Rectangle({
+						pos: new GSGL.geometry.Point(62, 240),
+						width: 48,
+						height: 48
 					}),
-					title: "S",
+					sprites: [
+						this.smallBtnInactive,
+						this.smallBtnActive,
+						this.smallBtnActive
+					],
+					title: "R"
+				}),
+				new GSGL.gl.ui.Button({
 					callback: function() {
 						_this.upgradeUnit("speed");
-					}
-				}),
-				new GSGL.ui.Button({
-					shape : new GSGL.geometry.Rectangle({
-						pos : new GSGL.geometry.Point(10, 254),
-						width: 150,
-						height: 46
+					},
+					shape: new GSGL.geometry.Rectangle({
+						pos: new GSGL.geometry.Point(124, 240),
+						width: 48,
+						height: 48
 					}),
-					title: "$ $ $",
+					sprites: [
+						this.smallBtnInactive,
+						this.smallBtnActive,
+						this.smallBtnActive
+					],
+					title: "S"
+				}),
+				new GSGL.gl.ui.Button({
 					callback: function() {
 						_this.sellUnit();
-					}
+					},
+					shape: new GSGL.geometry.Rectangle({
+						pos: new GSGL.geometry.Point(10, 300),
+						width: 128,
+						height: 48
+					}),
+					sprites: [
+						this.bigBtnInactive,
+						this.bigBtnActive,
+						this.bigBtnActive
+					],
+					title: "$ $ $"
 				}),
 			];
 		},
@@ -331,12 +414,86 @@ KKD.state.Game = function(params) {
 				case "pause":
 					break;
 			}
-
-
 		},
 
 		render : function(delta) {
-			this.surface.clear("#ffffff");
+			gl.clear(gl.COLOR_BUFFER_BIT);
+			gl.enable(gl.BLEND);
+
+			this.background.render(0, 0);
+			this.map.render(216, 14);
+
+			this.cult.render(delta);
+			this.player.render(delta);
+
+			this.buttons.pause.render(delta);
+			this.buttons.nextWave.render(delta);
+
+			$font.drawString("Gold: " + this.player.gold, 15, 24);
+			$font.drawString("Life: " + this.player.life, 95, 24);
+
+			switch(this.state) {
+				case "neutral":
+					var i = 0;
+					var len = this.unitsButtons.length;
+
+					for(i; i < len; i += 1) {
+						this.unitsButtons[i].render(delta);
+					}
+
+					break;
+				case "add":
+					var i = 0;
+					var len = this.unitsButtons.length;
+
+					for(i; i < len; i += 1) {
+						this.unitsButtons[i].render(delta);
+					}
+
+					this.renderUnitInfo();
+
+					this.buttons.cancel.render(delta);
+
+					if($intersects(
+						new GSGL.geometry.Point($mouse.X, $mouse.Y), 
+						this.activeArea)) {
+						this.tempUnit.render();
+					}
+					break;
+				case "unit":
+					var i = 0;
+					var len = this.unitButtons.length;
+
+					for(i; i < len; i += 1) {
+						this.unitButtons[i].render(delta);
+					}
+
+					this.activeUnit.renderInfo();
+
+					this.buttons.cancel.render(delta);
+					break;
+				case "enemy":
+					var i = 0;
+					var len = this.unitsButtons.length;
+
+					for(i; i < len; i += 1) {
+						this.unitsButtons[i].render(delta);
+					}
+
+					this.activeEnemy.renderInfo();
+					break;
+				case "pause":
+					var i = 0;
+					var len = this.unitsButtons.length;
+
+					for(i; i < len; i += 1) {
+						this.unitsButtons[i].render(delta);
+					}
+					break;
+			}
+
+			$renderManager.render();
+			/*
 			$g = this.surface.getContext();
 
 			// Map cliping
@@ -436,7 +593,7 @@ KKD.state.Game = function(params) {
 
 					break;
 			}
-
+			*/
 			this.collision = false;
 		},
 
@@ -548,7 +705,11 @@ KKD.state.Game = function(params) {
 		selectUnit : function(unit) {
 			console.log("Selecting " + unit);
 			this.state = "add";
-			this.tempUnit = new KKD.units.Unit(KKD.units.UNITS[unit]);
+
+			var obj = KKD.units.UNITS[unit];
+			obj['texture'] = this.texture.texture;
+
+			this.tempUnit = new KKD.units.Unit(obj);
 		},
 
 		selectActiveUnit : function(unit) {

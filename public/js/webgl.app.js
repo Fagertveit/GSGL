@@ -36,14 +36,14 @@ Application = function(params) {
 			$intersects = GSGL.physics.intersects;
 			$ajax = new GSGL.utility.Ajax({});
 			$resources = new GSGL.resource.ResourceManager();
-			//$renderManager = new GSGL.surface.RenderManager();
+			//$renderManager = new GSGL.surface.RenderManager3D({});
 
 			this.surface.initContext();
 
 			// We need to load an application state before we start the application
-			//this.shaderManager = new GSGL.gl.shader.ShaderManager({});
-			//this.shaderManager.initShaders("data/2d.fshader", "data/2d.vshader");
-			//$renderManager = new GSGL.gl.render.RenderManager2D({program: this.shaderManager.program});
+			this.shaderManager = new GSGL.gl.shader.ShaderManager({});
+			this.shaderManager.initShaders("data/2d.fshader", "data/2d.vshader");
+			$renderManager = new GSGL.gl.render.RenderManager2D({program: this.shaderManager.program});
 
 			this.texture = new GSGL.gl.texture.Texture({src: "img/tiles.png"});
 			this.font = new GSGL.gl.font.Font({src: "font/default.xml"});
@@ -184,7 +184,7 @@ Application = function(params) {
 			//this.sprite.renderAngleScale(50, 50, this.angle, this.scale);
 			
 			//this.sprite.renderAngleScale(350, 350, this.angle, -this.scale)
-			/*
+			
 			this.tiles[0].render(100, 100);
 			this.tiles[1].render(164, 100);
 			this.tiles[2].render(100, 164);
@@ -193,15 +193,16 @@ Application = function(params) {
 			this.tiles[5].render(164, 228);
 			this.tiles[6].render(228, 164);
 			
+			
+			
 			this.font.drawString("Testar litet!", 100, 100);
-			*/
 
 			//this.particleSprite.renderScale(this.x, this.y, 3);
 
 			//this.particleEmitter3.render();
-			this.particleEmitter.render();
-			this.particleEmitter2.render();
-			//$renderManager.render();
+			//this.particleEmitter.render();
+			//this.particleEmitter2.render();
+			$renderManager.render();
 		},
 	};
 	application.constructor(params);

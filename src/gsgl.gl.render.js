@@ -10,6 +10,7 @@ GSGL.gl.render = {
 			noColorLoc : {},
 			resolutionLoc : {},
 			texture : {},
+			batches : [],
 
 			constructor : function(params) {
 				for(key in params) {
@@ -23,6 +24,61 @@ GSGL.gl.render = {
 				this.renderCalls.splice(0, this.renderCalls.length);
 			},
 
+			findBatchByTexture : function(texture) {
+				var i = 0;
+				var len = this.batches.length;
+
+				for(i; i < len; i += 1) {
+					if(this.batches[i].texture == texture) {
+						return this.batches[i];
+					}
+				}
+
+				this.batches.push({
+					texture: texture,
+					vertices: [],
+					uvs: [],
+					indices: [],
+					numIndices: 0,
+					index: 0
+				});
+
+				return this.batches[len];
+			},
+
+			addToBatch : function(renderCall) {
+				var batch = this.findBatchByTexture(renderCall.texture);
+
+				this.batch.vertices = this.batch.vertices.concat(renderCall.vertices);
+				this.batch.uvs = this.batch.uvs.concat(renderCall.uvs);
+
+				var i = 0;
+				var len = renderCall.indices.length;
+
+				for(i; i < len; i += 1) {
+					this.batch.indices.push(renderCall.indices[i] + this.batch.index);
+				}
+				this.batch.index += Math.max.apply(null, renderCall.indices);
+				this.batch.numIndices += renderCall.numIndices;
+			},
+
+			flush : function() {
+				$renderManager.addRenderCall(this.batch);
+
+				this.batch = {
+					texture: this.texture[0].texture,
+					vertices: [],
+					uvs: [],
+					indices: [],
+					numIndices: 0,
+					index: 0
+				};
+			},
+
+			addBatch : function(batch) {
+				this.batches.push(batch);
+			},
+
 			addRenderCall : function(call) {
 				this.renderCalls.push(call);
 			},
@@ -34,13 +90,14 @@ GSGL.gl.render = {
 
 			drawScene : function() {
 				gl.useProgram(this.program);
-				gl.blendFunc(gl.ONE, gl.ONE);
+				//gl.blendFunc(gl.ONE, gl.ONE);
+				gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 				//gl.blendFunc(gl.DST_COLOR, gl.DST_COLOR);
 
 				//(GL_ZERO, GL_SRC_COLOR)GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA
 
 				this.resolutionLoc = gl.getUniformLocation(this.program, "u_resolution");
-				gl.uniform2f(this.resolutionLoc, 640, 480);
+				gl.uniform2f(this.resolutionLoc, GSGL.WIDTH, GSGL.HEIGHT);
 
 				this.positionLoc = gl.getAttribLocation(this.program, "a_position");
 				this.texCoordLoc = gl.getAttribLocation(this.program, "a_texCoord");
@@ -68,7 +125,6 @@ GSGL.gl.render = {
 					gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.renderCalls[i].vertices), gl.STATIC_DRAW);
 					gl.enableVertexAttribArray(this.positionLoc);
 					gl.vertexAttribPointer(this.positionLoc, 2, gl.FLOAT, false, 0, 0);
-					
 					
 					var texCoordBuffer = gl.createBuffer();
 
