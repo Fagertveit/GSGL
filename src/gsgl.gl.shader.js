@@ -1,6 +1,36 @@
 GSGL.gl.shader = {
 	ShaderManager : function(params) {
 		var shaderManager = {
+			programs : {},
+
+			constructor : function(params) {
+				for(key in params) {
+					if(this[key] != undefined) {
+						this[key] = params[key];
+					}
+				}
+			},
+
+			createProgram : function(fShader, vShader, id) {
+				this.programs[id] = new GSGL.gl.shader.Program();
+				this.programs[id].initShaders(fShader, vShader);
+			},
+
+			getProgram : function(id) {
+				return this.programs[id].getProgram();
+			},
+
+			useProgram : function(id) {
+				gl.useProgram(this.programs[id].getProgram());
+			},
+		};
+		shaderManager.constructor(params);
+
+		return shaderManager;
+	},
+
+	Program : function(params) {
+		var program = {
 			vShader : {},
 			fShader : {},
 			program : {},
@@ -71,9 +101,13 @@ GSGL.gl.shader = {
 					gl.useProgram(this.program);
 				}
 			},
-		};
-		shaderManager.constructor(params);
 
-		return shaderManager;
+			getProgram : function() {
+				return this.program;
+			},
+		};
+		program.constructor(params);
+
+		return program;
 	},
 };

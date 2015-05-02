@@ -89,7 +89,7 @@ KKD.enemies = {
 				}
 
 				this.maxHealth = this.health;
-				this.sprite = new GSGL.gl.sprite.Sprite({width: 92, height: 92, texture: this.texture, color: new GSGL.graphics.Color({r: 200, g: 0, b: 0, a: 0.8}), hasColor: true});
+				this.sprite = new GSGL.gl.sprite.Sprite({width: this.shape.radius * 2, height: this.shape.radius * 2, texture: this.texture, color: [0.8, 0.0, 0.0, 0.8], hasColor: true});
 				this.sprite.setUVPixels(2048, 2048, 0, 768, 256, 256);
 			},
 
@@ -111,39 +111,11 @@ KKD.enemies = {
 			},
 
 			render : function(delta) {
-				/*
-				this.shape.setPosition(this.pos.x, this.pos.y);
-
-				this.shape.render();
-				this.dir.renderArrow(this.pos.x, this.pos.y);
-
-				$g.save();
-				// Render healthbar
-				$g.strokeRect(this.pos.x - 10, this.pos.y - 20, 20, 5);
-				$g.fillStyle = "#990000";
-				$g.fillRect(this.pos.x - 9, this.pos.y - 19, 18, 3);
-				$g.fillStyle = "#00ff00";
-				$g.fillRect(this.pos.x - 9, this.pos.y - 19, 18 * (this.health / this.maxHealth), 3);
-
-				$g.restore();
-				*/
-
 				this.sprite.render(this.pos.x - this.shape.radius, this.pos.y - this.shape.radius);
 			},
 
 			renderInfo : function(delta) {
-				/*
-				$g.save();
-				$g.textAlign = "left";
-				$g.fillText(this.name, 15, 60);
-				$g.fillText("Health: " + this.health + "/" + this.maxHealth, 15, 80);
-				$g.fillText("Speed: " + KKD.enemies.SPEED[this.speed], 15, 100);
-				$g.fillText("Type: " + KKD.enemies.TYPE[this.type], 15, 120);
-				$g.fillText("Value: " + this.value, 15, 140)
-				$g.restore();
-				*/
-
-				$font.setAlign = "left";
+				$font.setAlign("left");
 				$font.drawString(this.name, 15, 60);
 				$font.drawString("Health: " + this.health + "/" + this.maxHealth, 15, 80);
 				$font.drawString("Speed: " + KKD.enemies.SPEED[this.speed], 15, 100);
@@ -210,7 +182,7 @@ KKD.enemies = {
 				obj.path = this.path;
 				obj.shape = new GSGL.geometry.Circle({
 					pos: new GSGL.geometry.Point(this.path.points[0].x, this.path.points[0].y),
-					radius: 10,
+					radius: 32,
 				});
 				obj.texture = this.texture;
 

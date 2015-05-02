@@ -1,4 +1,39 @@
 GSGL.gl.texture = {
+	/* GL TextureManager
+	 * * * * * * * * * * *
+	 * Global - $texture
+	 * The Texture Manager keeps track of all the active textures used in the application, it stores the webGL textures and
+	 * deletes it when not needed anylonger. Sprites use the texture manager to assign textures to specific sprites.
+	 */
+	TextureManager : function(params) {
+		var textureManager = {
+			textures : {},
+
+			constructor : function(params) {
+				for(key in params) {
+					if(this[key] != undefined) {
+						this[key] = params[key];
+					}
+				}
+			},
+
+			addTexture : function(src, id) {
+				this.textures[id] = new GSGL.gl.texture.Texture({src: src});
+			},
+
+			removeTexture : function(id) {
+				gl.deleteTexture(this.texture[id].texture);
+			},
+
+			getTexture : function(id) {
+				return this.textures[id].texture;
+			},
+		};
+		textureManager.constructor(params);
+
+		return textureManager;
+	},
+
 	Texture : function(params) {
 		var texture = {
 			id : 0,
@@ -54,6 +89,7 @@ GSGL.gl.texture = {
 				$resources.setLoaded(this.id);
 
 				this.init();
+
 				if(typeof(this.onLoaded) == "function") {
 					this.onLoaded();
 				}	

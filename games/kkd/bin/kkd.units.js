@@ -80,6 +80,7 @@ KKD.units = {
 			level : 1,
 			lastAttack : 0,
 			sprite : {},
+			rangeSprite : {},
 			texture : {},
 
 			constructor : function(params) {
@@ -90,14 +91,17 @@ KKD.units = {
 				}
 				this.init();
 
-				this.sprite = new GSGL.gl.sprite.Sprite({width: this.range + this.range, height: this.range + this.range, texture: this.texture, color: new GSGL.graphics.Color({r: 0, g: 200, b: 0, a: 0.8}), hasColor: true});
+				this.sprite = new GSGL.gl.sprite.Sprite({width: this.shape.radius * 2, height: this.shape.radius * 2, texture: this.texture, color: [0.0, 0.8, 0.0, 1.0], hasColor: true});
 				this.sprite.setUVPixels(2048, 2048, 0, 768, 256, 256);
+
+				this.rangeSprite = new GSGL.gl.sprite.Sprite({width: this.range + this.range, height: this.range + this.range, texture: this.texture, color: [0.0, 0.8, 0.0, 0.8], hasColor: true});
+				this.rangeSprite.setUVPixels(2048, 2048, 0, 768, 256, 256);
 			},
 
 			init : function() {
 				this.shape = new GSGL.geometry.Circle({
 					pos: this.pos,
-					radius: 10,
+					radius: 32,
 				});
 				this.radius = new GSGL.geometry.Circle({
 					pos: this.pos,
@@ -121,27 +125,17 @@ KKD.units = {
 			},
 
 			render : function(delta) {
-				/*
-				this.shape.render();
-				this.radius.render();
-				var scale = this.dir.scale(20);
-				scale.renderDirection(this.pos.x, this.pos.y);
-				this.dir.renderArrow(this.pos.x + scale.x, this.pos.y + scale.y);
-				*/
-				this.sprite.render(this.pos.x - this.range, this.pos.y - this.range);
+				this.rangeSprite.render(this.pos.x - this.range, this.pos.y - this.range);
+				this.sprite.render(this.pos.x - this.shape.radius, this.pos.y - this.shape.radius);
 			},
 
 			renderInfo : function(delta) {
-				/*
-				$g.save();
-				$g.textAlign = "left";
-				$g.fillText(this.name, 15, 60);
-				$g.fillText("Damage: " + this.damage, 15, 80);
-				$g.fillText("Range: " + this.range, 15, 100);
-				$g.fillText("Speed: " + KKD.units.ATTACK_SPEED[this.speed], 15, 120);
-				$g.fillText("Attack Type: " + KKD.units.ATTACK_TYPE[this.type], 15, 140);
-				$g.restore();
-				*/
+				$font.setAlign("left");
+				$font.drawString(this.name, 15, 60);
+				$font.drawString("Damage: " + this.damage, 15, 80);
+				$font.drawString("Range: " + this.range, 15, 100);
+				$font.drawString("Speed: " + KKD.units.ATTACK_SPEED[this.speed], 15, 120);
+				$font.drawString("Attack Type: " + KKD.units.ATTACK_TYPE[this.type], 15, 140);
 			},
 		};
 		unit.constructor(params);

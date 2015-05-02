@@ -1,7 +1,11 @@
+/* GL Font
+ * * * * * *
+ * 
+ */
+
 GSGL.gl.font = {
 	Font : function(params) {
 		var font = {
-			texture : [],
 			sprite : [],
 			loaded : [],
 			glyphs : [],
@@ -12,7 +16,6 @@ GSGL.gl.font = {
 			customSprite : false,
 			src : "",
 			align : "left",
-			batch : {},
 
 			constructor : function(params) {
 				for(key in params) {
@@ -38,39 +41,12 @@ GSGL.gl.font = {
 				});
 			},
 
-			addToBatch : function(renderCall) {
-				this.batch.vertices = this.batch.vertices.concat(renderCall.vertices);
-				this.batch.uvs = this.batch.uvs.concat(renderCall.uvs);
-
-				var i = 0;
-				var len = renderCall.indices.length;
-
-				for(i; i < len; i += 1) {
-					this.batch.indices.push(renderCall.indices[i] + this.batch.index);
-				}
-				this.batch.index += 4;
-				this.batch.numIndices += renderCall.numIndices;
-			},
-
-			flush : function() {
-				$renderManager.addRenderCall(this.batch);
-
-				this.batch = {
-					texture: this.texture[0].texture,
-					vertices: [],
-					uvs: [],
-					indices: [],
-					numIndices: 0,
-					index: 0
-				};
-			},
-
 			configCustomSprite : function(texture, mapWidth, mapHeight, startX, startY, width, height) {
 
 			},
 
 			createSprite : function(id) {
-				this.sprite[id] = new GSGL.gl.sprite.Sprite({texture: this.texture[id].texture, width: this.texture[id].width, height: this.texture[id].height, hasColor: true});
+				
 			},
 
 			parseConfig : function() {
@@ -82,6 +58,8 @@ GSGL.gl.font = {
 
 				this.lineHeight = parseInt(common[0].getAttribute("lineHeight"));
 				this.base = parseInt(common[0].getAttribute("base"));
+				this.scaleW = parseInt(common[0].getAttribute("scaleW"));
+				this.scaleH = parseInt(common[0].getAttribute("scaleH"));
 
 				var i = 0;
 				var len = pages.length;
@@ -89,11 +67,15 @@ GSGL.gl.font = {
 				for(i; i < len; i += 1) {
 					var id = pages[i].getAttribute("id");
 					var file = pages[i].getAttribute("file");
-					_id = id;
 
-					this.texture[id] = new GSGL.gl.texture.Texture({src: "font/" + file, onLoaded: function() {
-						_this.createSprite(_id);
-					}});
+					$textureManager.addTexture("font/" + file, "font" + id);
+					this.sprite[id] = new GSGL.gl.sprite.Sprite({
+						texture: "font" + id, 
+						width: this.scaleW, 
+						height: this.scaleH, 
+						hasColor: true,
+						color: this.color
+					});
 				}
 
 				i = 0;
@@ -113,18 +95,21 @@ GSGL.gl.font = {
 
 					this.glyphs[id] = new GSGL.gl.font.Glyph({x: x, y: y, width: width, height: height, xOffset: xoffset, yOffset: yoffset, xAdvance: xadvance, page: page});
 				}
-
-				this.batch = {
-					texture: this.texture[0].texture,
-					vertices: [],
-					uvs: [],
-					indices: [],
-					numIndices: 0
-				};
 			},
 
 			parseConfigCustomSprite : function(texture, mapWidth, mapHeight, startX, startY, width, height) {
 
+			},
+
+			setColor : function(r, g, b, a) {
+				this.color = [r, g, b, a];
+
+				var i = 0;
+				var len = this.sprite.length;
+
+				for(i; i < len; i += 1) {
+					this.sprite[i].setColor(r, g, b, a);
+				}
 			},
 
 			setAlign : function(align) {
@@ -162,7 +147,7 @@ GSGL.gl.font = {
 					var id = str.charCodeAt(i);
 					
 					if(this.glyphs[id] != undefined) {
-						this.addToBatch(this.sprite[this.glyphs[id].page].renderSub(currentX + this.glyphs[id].xOffset, y + this.glyphs[id].yOffset, this.glyphs[id].x, this.glyphs[id].y, this.glyphs[id].width, this.glyphs[id].height, true));
+						this.sprite[this.glyphs[id].page].renderSub(currentX + this.glyphs[id].xOffset, y + this.glyphs[id].yOffset, this.glyphs[id].x, this.glyphs[id].y, this.glyphs[id].width, this.glyphs[id].height);
 						currentX += this.glyphs[id].xAdvance;
 					}
 				}

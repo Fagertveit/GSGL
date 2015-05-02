@@ -41,7 +41,16 @@
 	<script src="bin/kkd.enemies.js"></script>
 	<script src="bin/kkd.units.js"></script>
 	<script src="bin/kkd.map.js"></script>
-	<script src="bin/kkd.app.js"></script>
+	<!--<script src="bin/kkd.app.js"></script>-->
+<script>
+var app = new GSGL.gl.Application({
+	width: 800,
+	height: 600,
+	canvasId: "kkd-canvas"
+});
+
+app.setState(KKD.state.Menu);
+</script>
 	
 </body>
 </html>

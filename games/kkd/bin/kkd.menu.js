@@ -1,6 +1,6 @@
 KKD.state.Menu = function(params) {
 	var menu = {
-		parent : {},
+		application : {},
 		logger : new GSGL.utility.Logger({type: "KKD Menu"}),
 		menuBtns : {},
 		aboutBtns : {},
@@ -18,19 +18,24 @@ KKD.state.Menu = function(params) {
 
 		init : function() {
 			var _this = this;
+			$font = new GSGL.gl.font.Font({src: "font/font.xml"});
+			$shaderManager.createProgram("data/2d.fs", "data/2d.vs", "default");
+			$shaderManager.useProgram("default");
+
+			$renderManager.initRenderer();
 
 			// Load the main texture
-			this.texture = new GSGL.gl.texture.Texture({src: "img/menu_tex01.png"});
+			$textureManager.addTexture("img/menu_tex01.png", "menu");
 
 			// Load some sprites yoh
-			this.background = new GSGL.gl.sprite.Sprite({width: 800, height: 600, texture: this.texture.texture});
+			this.background = new GSGL.gl.sprite.Sprite({width: 800, height: 600, texture: "menu"});
 			this.background.setUVPixels(1024, 1024, 0, 0, 800, 600);
 
 			// Menu btn sprites
-			var startBtnInactive = new GSGL.gl.sprite.Sprite({width: 128, height: 48, texture: this.texture.texture});
+			var startBtnInactive = new GSGL.gl.sprite.Sprite({width: 128, height: 48, texture: "menu"});
 			startBtnInactive.setUVPixels(1024, 1024, 0, 640, 128, 48);
 
-			var startBtnActive = new GSGL.gl.sprite.Sprite({width: 128, height: 48, texture: this.texture.texture});
+			var startBtnActive = new GSGL.gl.sprite.Sprite({width: 128, height: 48, texture: "menu"});
 			startBtnActive.setUVPixels(1024, 1024, 128, 640, 128, 48);
 
 			this.menuBtns = {
@@ -158,7 +163,7 @@ KKD.state.Menu = function(params) {
 				default:
 					this.renderMain(delta);
 			}
-			$font.flush();
+
 			$renderManager.render();
 		},
 
@@ -203,12 +208,12 @@ KKD.state.Menu = function(params) {
 
 		startGame : function() {
 			console.log("Starting Game");
-			this.parent.setState("game");
+			this.application.setState(KKD.state.Game);
 		},
 
 		startEditor : function() {
 			console.log("Starting Editor");
-			this.parent.setState("editor");
+			this.application.setState(KKD.state.Editor);
 		},
 	};
 	menu.constructor(params);

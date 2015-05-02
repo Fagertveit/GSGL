@@ -1,16 +1,160 @@
+/* WebGL Renderer
+ * * * * * * * * * * *
+ * We need to render things in the right order with the right texture and shader program and blending.
+ * We need to push things into batches as often as we can, so we need to identify a global routine for rendering
+ * everything in the rendering loop. Let's try to push the particle batch into this as well.
+ * These are the things we need to setup each batch
+ * * Z-Order
+ * * Texture
+ * * Shader Program
+ * * Blender
+ * Let's figure out how to sort rendercalls in a natural and optimized way:
+ * * Z-Index
+ * * * Program
+ * * * * Texture
+ * * * * Blendning
+ */
 GSGL.gl.render = {
 	RenderManager2D : function(params) {
 		var renderManager2d = {
-			renderCalls : [],
-			program : {},
+			uid : 0,
+			renderCalls : {},
+			// Shader Attributes
 			positionLoc : {},
 			texCoordLoc : {},
+			// Shader Uniforms
 			colorLoc : {},
 			noTextureLoc : {},
 			noColorLoc : {},
 			resolutionLoc : {},
-			texture : {},
-			batches : [],
+			// Buffer objects
+			vertexBuffer : {},
+			indicesBuffer : {},
+			texCoordBuffer : {},
+			
+			constructor : function(params) {
+				for(key in params) {
+					if(this[key] != undefined) {
+						this[key] = params[key];
+					}
+				}
+			},
+
+			initRenderer : function() {
+				var program = $shaderManager.getProgram("default");
+
+				this.resolutionLoc = gl.getUniformLocation(program, "u_resolution");
+				this.positionLoc = gl.getAttribLocation(program, "a_position");
+				this.texCoordLoc = gl.getAttribLocation(program, "a_texCoord");
+				this.colorLoc = gl.getUniformLocation(program, "u_color");
+				this.noTextureLoc = gl.getUniformLocation(program, "no_texture");
+				this.noColorLoc = gl.getUniformLocation(program, "no_color");
+
+				this.vertexBuffer = gl.createBuffer();
+				this.indicesBuffer = gl.createBuffer();
+				this.texCoordBuffer = gl.createBuffer();
+			},
+
+			clearCalls : function() {
+				this.renderCalls = {};
+			},
+
+			addToCall : function(zIndex, program, texture, renderCall) {
+				var id = "" + zIndex + ";" + program + ";" + texture;
+				if(renderCall.hasColor) {
+					id += ";r" + renderCall.color[0] + ";g" + renderCall.color[1] + ";b" + renderCall.color[2] + ";a" + renderCall.color[3];
+				} 
+
+				if(this.renderCalls[id] == undefined) {
+					this.renderCalls[id] = new GSGL.gl.render.RenderCall({
+						texture: texture,
+						program: program,
+						zIndex: zIndex
+					});
+				}
+
+				this.renderCalls[id].add(renderCall);
+			},
+
+			orderByZIndex : function() {
+				// We sort the calls in z-index order so that we render it in the right order.
+			},
+
+			render : function() {
+				this.flush();
+				this.clearCalls();
+			},
+
+			flush : function() {
+				gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+				gl.uniform2f(this.resolutionLoc, GSGL.WIDTH, GSGL.HEIGHT);
+
+				for(key in this.renderCalls) {
+					if(this.renderCalls[key].hasTexture) {
+						gl.uniform1i(this.noTextureLoc, 0);
+						gl.bindTexture(gl.TEXTURE_2D, $textureManager.getTexture(this.renderCalls[key].texture));
+					} else {
+						gl.uniform1i(this.noTextureLoc, 1);
+					}
+
+					if(this.renderCalls[key].hasColor) {
+						gl.uniform1i(this.noColorLoc, 0);
+						gl.uniform4f(this.colorLoc, this.renderCalls[key].color[0], this.renderCalls[key].color[1], this.renderCalls[key].color[2], this.renderCalls[key].color[3]); 
+					} else {
+						gl.uniform1i(this.noColorLoc, 1);
+					}
+
+					gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
+					gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.renderCalls[key].vertices), gl.STATIC_DRAW);
+					gl.enableVertexAttribArray(this.positionLoc);
+					gl.vertexAttribPointer(this.positionLoc, 2, gl.FLOAT, false, 0, 0);
+
+					gl.bindBuffer(gl.ARRAY_BUFFER, this.texCoordBuffer);
+					gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.renderCalls[key].uvs), gl.STATIC_DRAW);
+					gl.enableVertexAttribArray(this.texCoordLoc);
+					gl.vertexAttribPointer(this.texCoordLoc, 2, gl.FLOAT, false, 0, 0);
+
+					gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indicesBuffer);
+					gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.renderCalls[key].indices), gl.STATIC_DRAW);
+					
+					gl.drawElements(gl.TRIANGLES, this.renderCalls[key].numIndices, gl.UNSIGNED_SHORT, 0);
+				}
+			},
+		};
+		renderManager2d.constructor(params);
+
+		return renderManager2d;
+	},
+
+	/* RenderCall
+	 * * * * * * * *
+	 * A RenderCall is a collection of renderable objects that uses the same general resources, thus being able to 
+	 * push these through the GPU at the same time. The rendercalls are divided using the following parameters:
+	 * * Z-Index
+	 * * Shader
+	 * * Texture
+	 * * Blend Mode
+	 * The rendercall contains the following information:
+	 * * Texture
+	 * * Program
+	 * * Blend Mode
+	 * * Vertices
+	 * * Vertex Indices
+	 * * UV coords
+	 */
+	RenderCall : function(params) {
+		var renderCall = {
+			vertices: [],
+			indices: [],
+			uvs: [],
+			index: 0,
+			numIndices: 0,
+			texture: {},
+			program: {},
+			zIndex: 0,
+			color: [0.0, 0.0, 0.0, 1.0],
+			hasColor: false,
+			hasTexture: true,
 
 			constructor : function(params) {
 				for(key in params) {
@@ -20,133 +164,65 @@ GSGL.gl.render = {
 				}
 			},
 
-			clearCalls : function() {
-				this.renderCalls.splice(0, this.renderCalls.length);
-			},
-
-			findBatchByTexture : function(texture) {
-				var i = 0;
-				var len = this.batches.length;
-
-				for(i; i < len; i += 1) {
-					if(this.batches[i].texture == texture) {
-						return this.batches[i];
-					}
-				}
-
-				this.batches.push({
-					texture: texture,
-					vertices: [],
-					uvs: [],
-					indices: [],
-					numIndices: 0,
-					index: 0
-				});
-
-				return this.batches[len];
-			},
-
-			addToBatch : function(renderCall) {
-				var batch = this.findBatchByTexture(renderCall.texture);
-
-				this.batch.vertices = this.batch.vertices.concat(renderCall.vertices);
-				this.batch.uvs = this.batch.uvs.concat(renderCall.uvs);
+			add : function(renderCall) {
+				this.vertices = this.vertices.concat(renderCall.vertices);
+				this.uvs = this.uvs.concat(renderCall.uvs);
 
 				var i = 0;
 				var len = renderCall.indices.length;
 
 				for(i; i < len; i += 1) {
-					this.batch.indices.push(renderCall.indices[i] + this.batch.index);
+					this.indices.push(renderCall.indices[i] + this.index);
 				}
-				this.batch.index += Math.max.apply(null, renderCall.indices);
-				this.batch.numIndices += renderCall.numIndices;
+
+				this.index += this.findMaxIndex(renderCall.indices);
+
+				this.numIndices += renderCall.numIndices;
+
+				if(renderCall.hasColor) {
+					this.hasColor = true;
+					this.color = renderCall.color;
+				}
+			},
+
+			findMaxIndex : function(indices) {
+				var i = 0;
+				var len = indices.length;
+				var max = 0;
+
+				for(i; i < len; i += 1) {
+					if(indices[i] > max) {
+						max = indices[i];
+					}
+				}
+
+				max += 1;
+
+				return max;
 			},
 
 			flush : function() {
-				$renderManager.addRenderCall(this.batch);
-
-				this.batch = {
-					texture: this.texture[0].texture,
-					vertices: [],
-					uvs: [],
-					indices: [],
-					numIndices: 0,
-					index: 0
-				};
+				this.vertices = [];
+				this.indices = [];
+				this.uvs = [];
+				this.index = 0;
+				this.numIndices = 0;
 			},
 
-			addBatch : function(batch) {
-				this.batches.push(batch);
+			setProgram : function(program) {
+				this.program = program;
 			},
 
-			addRenderCall : function(call) {
-				this.renderCalls.push(call);
+			setTexture : function(texture) {
+				this.texture = texture;
 			},
 
-			render : function() {
-				this.drawScene();
-				this.clearCalls();
-			},
-
-			drawScene : function() {
-				gl.useProgram(this.program);
-				//gl.blendFunc(gl.ONE, gl.ONE);
-				gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-				//gl.blendFunc(gl.DST_COLOR, gl.DST_COLOR);
-
-				//(GL_ZERO, GL_SRC_COLOR)GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA
-
-				this.resolutionLoc = gl.getUniformLocation(this.program, "u_resolution");
-				gl.uniform2f(this.resolutionLoc, GSGL.WIDTH, GSGL.HEIGHT);
-
-				this.positionLoc = gl.getAttribLocation(this.program, "a_position");
-				this.texCoordLoc = gl.getAttribLocation(this.program, "a_texCoord");
-				this.colorLoc = gl.getUniformLocation(this.program, "u_color");
-				this.noTextureLoc = gl.getUniformLocation(this.program, "no_texture");
-				this.noColorLoc = gl.getUniformLocation(this.program, "no_color");
-
-				var len = this.renderCalls.length;
-				var i = 0;
-
-				for(i; i < len; i += 1) {
-					gl.uniform1i(this.noTextureLoc, 0);
-					gl.bindTexture(gl.TEXTURE_2D, this.renderCalls[i].texture);
-
-					if(this.renderCalls[i].hasColor) {
-						gl.uniform1i(this.noColorLoc, 0);
-						gl.uniform4f(this.colorLoc, this.renderCalls[i].color[0], this.renderCalls[i].color[1], this.renderCalls[i].color[2], this.renderCalls[i].color[3]); 
-					} else {
-						gl.uniform1i(this.noColorLoc, 1);
-					}
-					
-					var vertexBuffer = gl.createBuffer();
-
-					gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-					gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.renderCalls[i].vertices), gl.STATIC_DRAW);
-					gl.enableVertexAttribArray(this.positionLoc);
-					gl.vertexAttribPointer(this.positionLoc, 2, gl.FLOAT, false, 0, 0);
-					
-					var texCoordBuffer = gl.createBuffer();
-
-					gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
-					gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.renderCalls[i].uvs), gl.STATIC_DRAW);
-					gl.enableVertexAttribArray(this.texCoordLoc);
-					gl.vertexAttribPointer(this.texCoordLoc, 2, gl.FLOAT, false, 0, 0);
-					
-					var indicesBuffer = gl.createBuffer();
-
-					gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesBuffer);
-					gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.renderCalls[i].indices), gl.STATIC_DRAW);
-					
-					gl.drawElements(gl.TRIANGLES, this.renderCalls[i].numIndices, gl.UNSIGNED_SHORT, 0);
-					
-					gl.disableVertexAttribArray(this.positionLoc);
-					gl.disableVertexAttribArray(this.texCoordLoc);
-				}
-			},
+			setZIndex : function(zIndex) {
+				this.zIndex = zIndex;
+			}
 		};
-		renderManager2d.constructor(params);
+		renderCall.constructor(params);
 
-		return renderManager2d;
-	}
+		return renderCall;
+	},
 }

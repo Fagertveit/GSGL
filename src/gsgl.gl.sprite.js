@@ -2,11 +2,13 @@ GSGL.gl.sprite = {
 	Sprite : function(params) {
 		var sprite = {
 			uv : [0.0, 0.0, 1.0, 1.0],
-			color : new GSGL.graphics.Color({r: 255, g: 0, b: 0, a: 0.5}),
+			color : [1.0, 1.0, 1.0, 1.0],
 			width : 0,
 			height : 0,
-			texture : {},
+			texture : "",
 			hasColor : false,
+			zIndex : 0,
+			program : "default",
 
 			constructor : function(params) {
 				for(key in params) {
@@ -24,6 +26,10 @@ GSGL.gl.sprite = {
 				this.uv = [(x / mapWidth), (y / mapHeight), ((x + width) / mapWidth), ((y + height) / mapHeight)];
 			},
 
+			setColor : function(r, g, b, a) {
+				this.color = [r,g,b,a];
+			},
+
 			render : function(x, y, returnCall) {
 				var renderCall = {
 					texture : this.texture,
@@ -39,16 +45,14 @@ GSGL.gl.sprite = {
 					numIndices : 6
 				};
 
+				var unique = false;
+
 				if(this.hasColor) {
 					renderCall.hasColor = true;
-					renderCall.color = this.color.getRGBAFloatArray();
+					renderCall.color = this.color;
 				}
 
-				if(returnCall) {
-					return renderCall;
-				} else {
-					$renderManager.addRenderCall(renderCall);
-				}
+				$renderManager.addToCall(this.zIndex, this.program, this.texture, renderCall);
 			},
 
 			renderScale : function(x, y, scale) {
@@ -68,10 +72,10 @@ GSGL.gl.sprite = {
 
 				if(this.hasColor) {
 					renderCall.hasColor = true;
-					renderCall.color = this.color.getRGBAFloatArray();
+					renderCall.color = this.color;
 				}
 
-				$renderManager.addRenderCall(renderCall);
+				$renderManager.addToCall(this.zIndex, this.program, this.texture, renderCall);
 			},
 
 			renderAngle : function(x, y, angle) {
@@ -108,10 +112,10 @@ GSGL.gl.sprite = {
 
 				if(this.hasColor) {
 					renderCall.hasColor = true;
-					renderCall.color = this.color.getRGBAFloatArray();
+					renderCall.color = this.color;
 				}
 
-				$renderManager.addRenderCall(renderCall);
+				$renderManager.addToCall(this.zIndex, this.program, this.texture, renderCall);
 			},
 
 			renderAngleScale : function(x, y, angle, scale) {
@@ -148,10 +152,10 @@ GSGL.gl.sprite = {
 
 				if(this.hasColor) {
 					renderCall.hasColor = true;
-					renderCall.color = this.color.getRGBAFloatArray();
+					renderCall.color = this.color;
 				}
 
-				$renderManager.addRenderCall(renderCall);
+				$renderManager.addToCall(this.zIndex, this.program, this.texture, renderCall);
 			},
 
 			renderSub : function(x, y, subX, subY, subWidth, subHeight, returnCall) {
@@ -175,11 +179,12 @@ GSGL.gl.sprite = {
 						numIndices : 6
 				};
 
-				if(returnCall) {
-					return renderCall;
-				} else {
-					$renderManager.addRenderCall(renderCall);
+				if(this.hasColor) {
+					renderCall.hasColor = true;
+					renderCall.color = this.color;
 				}
+
+				$renderManager.addToCall(this.zIndex, this.program, this.texture, renderCall);
 			},
 		};
 		sprite.constructor(params);

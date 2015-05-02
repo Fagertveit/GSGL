@@ -88,31 +88,31 @@ KKD.state.Game = function(params) {
 		init : function() {
 			var _this = this;
 			// Load the main texture
-			this.texture = new GSGL.gl.texture.Texture({src: "img/ingame_tex01.png"});
+			$textureManager.addTexture("img/ingame_tex01.png", "game");
 
 			// Load some sprites yoh
-			this.background = new GSGL.gl.sprite.Sprite({width: 800, height: 600, texture: this.texture.texture});
+			this.background = new GSGL.gl.sprite.Sprite({width: 800, height: 600, texture: "game"});
 			this.background.setUVPixels(2048, 2048, 0, 0, 800, 600);
 
-			this.map = new GSGL.gl.sprite.Sprite({width: 569, height: 568, texture: this.texture.texture});
+			this.map = new GSGL.gl.sprite.Sprite({width: 569, height: 568, texture: "game"});
 			this.map.setUVPixels(2048, 2048, 832, 0, 569, 568);
 
 			// Menu btn sprites
-			this.bigBtnInactive = new GSGL.gl.sprite.Sprite({width: 128, height: 48, texture: this.texture.texture});
+			this.bigBtnInactive = new GSGL.gl.sprite.Sprite({width: 128, height: 48, texture: "game"});
 			this.bigBtnInactive.setUVPixels(2048, 2048, 0, 640, 128, 48);
 
-			this.bigBtnActive = new GSGL.gl.sprite.Sprite({width: 128, height: 48, texture: this.texture.texture});
+			this.bigBtnActive = new GSGL.gl.sprite.Sprite({width: 128, height: 48, texture: "game"});
 			this.bigBtnActive.setUVPixels(2048, 2048, 128, 640, 128, 48);
 
-			this.smallBtnInactive = new GSGL.gl.sprite.Sprite({width: 48, height: 48, texture: this.texture.texture});
+			this.smallBtnInactive = new GSGL.gl.sprite.Sprite({width: 48, height: 48, texture: "game"});
 			this.smallBtnInactive.setUVPixels(2048, 2048, 0, 704, 48, 48);
 
-			this.smallBtnActive = new GSGL.gl.sprite.Sprite({width: 48, height: 48, texture: this.texture.texture});
+			this.smallBtnActive = new GSGL.gl.sprite.Sprite({width: 48, height: 48, texture: "game"});
 			this.smallBtnActive.setUVPixels(2048, 2048, 48, 704, 48, 48);
 
 			this.cult = new KKD.enemies.Cult({
 				path: this.path.paths[0],
-				texture: this.texture.texture
+				texture: "game"
 			});
 
 			// Buttons
@@ -163,7 +163,7 @@ KKD.state.Game = function(params) {
 						this.bigBtnActive,
 						this.bigBtnActive
 					],
-					title: "Pause"
+					title: "Cancel"
 				}),
 			};
 
@@ -332,6 +332,8 @@ KKD.state.Game = function(params) {
 					title: "$ $ $"
 				}),
 			];
+
+			$font.setColor(0.0, 0.0, 0.0, 1.0);
 		},
 
 		update : function(delta) {
@@ -363,6 +365,7 @@ KKD.state.Game = function(params) {
 					}
 
 					if($mouse.CLICK[0] && $intersects(new GSGL.geometry.Point($mouse.X, $mouse.Y), this.activeArea)) {
+						console.log("Checking selection!");
 						this.checkSelection(new GSGL.geometry.Point($mouse.X, $mouse.Y));
 					}
 					break;
@@ -430,7 +433,7 @@ KKD.state.Game = function(params) {
 			this.buttons.nextWave.render(delta);
 
 			$font.drawString("Gold: " + this.player.gold, 15, 24);
-			$font.drawString("Life: " + this.player.life, 95, 24);
+			$font.drawString("Life: " + this.player.health, 95, 24);
 
 			switch(this.state) {
 				case "neutral":
@@ -493,107 +496,6 @@ KKD.state.Game = function(params) {
 			}
 
 			$renderManager.render();
-			/*
-			$g = this.surface.getContext();
-
-			// Map cliping
-			$g.save();
-
-			$g.beginPath();
-			$g.moveTo(170, 10);
-			$g.lineTo(630, 10);
-			$g.lineTo(630, 470);
-			$g.lineTo(170, 470);
-			$g.closePath();
-
-			$g.clip();
-
-			this.map.render(delta);
-			this.cult.render(delta);
-			this.player.render(delta);
-
-			$g.restore();
-			// Map frame
-			$g.strokeRect(170, 10, 460, 460);
-
-			// Current gold
-			$g.strokeRect(10, 10, 70, 20);
-			$g.fillText("Gold: " + this.player.gold, 15, 24);
-			// Current Life
-			$g.strokeRect(90, 10, 70, 20);
-			$g.fillText("Life: " + this.player.health, 95, 24);
-
-			// Info screen
-			$g.strokeRect(10, 40, 150, 150);
-			//$g.fillText("Info", 15, 54);
-
-			// Render Buttons
-			this.buttons.pause.render(delta);
-			this.buttons.nextWave.render(delta);
-
-			// Render unit btns
-			switch(this.state) {
-				case "neutral":
-					var i = 0;
-					var len = this.unitsButtons.length;
-
-					for(i; i < len; i += 1) {
-						this.unitsButtons[i].render(delta);
-					}
-
-					break;
-				case "add":
-					var i = 0;
-					var len = this.unitsButtons.length;
-
-					for(i; i < len; i += 1) {
-						this.unitsButtons[i].render(delta);
-					}
-
-					this.renderUnitInfo();
-
-					this.buttons.cancel.render(delta);
-
-					if($intersects(
-						new GSGL.geometry.Point($mouse.X, $mouse.Y), 
-						this.activeArea)) {
-						this.tempUnit.render();
-					}
-					break;
-				case "unit":
-					var i = 0;
-					var len = this.unitButtons.length;
-
-					for(i; i < len; i += 1) {
-						this.unitButtons[i].render(delta);
-					}
-
-					this.activeUnit.renderInfo();
-
-					this.buttons.cancel.render(delta);
-					break;
-				case "enemy":
-					var i = 0;
-					var len = this.unitsButtons.length;
-
-					for(i; i < len; i += 1) {
-						this.unitsButtons[i].render(delta);
-					}
-
-					this.activeEnemy.renderInfo();
-					break;
-				case "pause":
-					var i = 0;
-					var len = this.unitsButtons.length;
-
-					for(i; i < len; i += 1) {
-						this.unitsButtons[i].render(delta);
-					}
-
-
-					break;
-			}
-			*/
 			this.collision = false;
 		},
 
@@ -609,7 +511,6 @@ KKD.state.Game = function(params) {
 			}
 
 			// Check Enemy Units
-
 			i = 0;
 			len = this.cult.members.length;
 
@@ -707,7 +608,7 @@ KKD.state.Game = function(params) {
 			this.state = "add";
 
 			var obj = KKD.units.UNITS[unit];
-			obj['texture'] = this.texture.texture;
+			obj['texture'] = "game";
 
 			this.tempUnit = new KKD.units.Unit(obj);
 		},
@@ -728,7 +629,8 @@ KKD.state.Game = function(params) {
 
 		triggerNextWave : function() {
 			this.cult = new KKD.enemies.Cult({
-				path: this.map.paths[0]
+				path: this.path.paths[0],
+				texture: "game"
 			});
 		},
 
