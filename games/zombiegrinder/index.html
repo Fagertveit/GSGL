@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Zombie Grinder</title>
+	<link rel="stylesheet" href="css/style.css" />
+	<script src="../../src/gsgl.js"></script>
+	<script src="../../src/gsgl.utility.js"></script>
+	<script src="../../src/gsgl.surface.js"></script>
+	<script src="../../src/gsgl.geometry.js"></script>
+	<script src="../../src/gsgl.graphics.js"></script>
+	<script src="../../src/gsgl.event.js"></script>
+	<script src="../../src/gsgl.physics.js"></script>
+	<script src="../../src/gsgl.ui.js"></script>
+	<script src="../../src/gsgl.resource.js"></script>
+	<script src="../../src/gsgl.gl.js"></script>
+	<script src="../../src/gsgl.gl.shader.js"></script>
+	<script src="../../src/gsgl.gl.texture.js"></script>
+	<script src="../../src/gsgl.gl.render.js"></script>
+	<script src="../../src/gsgl.gl.sprite.js"></script>
+	<script src="../../src/gsgl.gl.font.js"></script>
+	<script src="../../src/gsgl.gl.particle.js"></script>
+	<script src="../../src/gsgl.gl.ui.js"></script>
+<style>
+img#preload {
+	display: none;
+}
+</style>
+</head>
+<body>
+	<img id="preload" src="img/loading.png" />
+	<div class="container">
+		<div id="gsgl-container">
+
+		</div>
+	</div>
+	<!-- Game related script files -->
+	<script src="bin/zg.js"></script>
+	<script src="bin/zg.splash.js"></script>
+	<script src="bin/zg.menu.js"></script>
+	<script src="bin/zg.game.js"></script>
+<script>
+var app = new GSGL.gl.Application({
+	width: 544,
+	height: 544,
+	canvasId: "zg-canvas"
+});
+
+app.setState(ZG.state.Splash);
+</script>
+	
+</body>
+</html>
