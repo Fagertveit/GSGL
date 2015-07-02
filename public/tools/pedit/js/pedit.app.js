@@ -42,10 +42,10 @@ Application = function(params) {
 			this.particleTexture = new GSGL.gl.texture.Texture({src: "img/alpha_particle.png"});
 
 			this.particleProgram = new GSGL.gl.shader.ShaderManager({});
-			this.particleProgram.initShaders("data/2dParticle.fs", "data/2dParticle.vs");
+			this.particleProgram.createProgram("data/2dParticle.fs", "data/2dParticle.vs", "particle");
 
 			this.shaderProgram = new GSGL.gl.shader.ShaderManager({});
-			this.shaderProgram.initShaders("data/2d.fs", "data/2d.vs");
+			this.shaderProgram.createProgram("data/2d.fs", "data/2d.vs", "shader2d");
 
 			this.renderManager.program = this.shaderProgram.program;
 
