@@ -34,6 +34,8 @@ Application = function(params) {
 			// Global collision detection, takes to shapes and checks if they intersects.
 			$ajax = new GSGL.utility.Ajax({});
 			$resources = new GSGL.resource.ResourceManager();
+			$shaderManager = new GSGL.gl.shader.ShaderManager();
+			$renderManager = new GSGL.gl.render.RenderManager2D();
 
 			//$renderManager = new GSGL.surface.RenderManager();
 
@@ -41,14 +43,9 @@ Application = function(params) {
 
 			this.particleTexture = new GSGL.gl.texture.Texture({src: "img/alpha_particle.png"});
 
-			this.particleProgram = new GSGL.gl.shader.ShaderManager({});
-			this.particleProgram.createProgram("data/2dParticle.fs", "data/2dParticle.vs", "particle");
-
-			this.shaderProgram = new GSGL.gl.shader.ShaderManager({});
-			this.shaderProgram.createProgram("data/2d.fs", "data/2d.vs", "shader2d");
-
-			this.renderManager.program = this.shaderProgram.program;
-
+			$shaderManager.createProgram("data/2dParticle.fs", "data/2dParticle.vs", "particle");
+			$shaderManager.createProgram("data/2d.fs", "data/2d.vs", "shader2d");
+           
 			this.system = new GSGL.gl.particle.ParticleSystem({});
 			this.sprite = new GSGL.gl.sprite.Sprite({width: 380, height: 380});
 			this.sprite.setUV(0, 0, 1, 1);
@@ -116,7 +113,6 @@ Application = function(params) {
 		render : function(delta) {
 			gl.clear(gl.COLOR_BUFFER_BIT);
 			gl.enable(gl.BLEND);
-
 
 			this.system.render();
 		},
@@ -245,7 +241,6 @@ Application = function(params) {
 		addEmitterHandler : function() {
 			var emitter = new GSGL.gl.particle.ParticleEmitter({
 				texture: this.particleTexture.texture,
-				program: this.particleProgram.program,
 				pos: {x: 200, y: 200},
 			});
 

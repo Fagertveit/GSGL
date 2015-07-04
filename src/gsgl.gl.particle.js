@@ -173,16 +173,17 @@ GSGL.gl.particle = {
 			},
 
 			render : function(delta) {
-				gl.useProgram(this.program);
+				var program = $shaderManager.getProgram("particle")
+				gl.useProgram(program);
 				gl.enable(gl.BLEND);
 				gl.blendFunc(this.blendSrc, this.blendDst);
 
-				this.resolutionLoc = gl.getUniformLocation(this.program, "u_resolution");
+				this.resolutionLoc = gl.getUniformLocation(program, "u_resolution");
 				gl.uniform2f(this.resolutionLoc, GSGL.WIDTH, GSGL.HEIGHT);
 
-				this.positionLoc = gl.getAttribLocation(this.program, "a_position");
-				this.pointSizeLoc = gl.getAttribLocation(this.program, "a_pointSize");
-				this.colorLoc = gl.getUniformLocation(this.program, "u_color");
+				this.positionLoc = gl.getAttribLocation(program, "a_position");
+				this.pointSizeLoc = gl.getAttribLocation(program, "a_pointSize");
+				this.colorLoc = gl.getUniformLocation(program, "u_color");
 
 				gl.bindTexture(gl.TEXTURE_2D, this.texture);
 
