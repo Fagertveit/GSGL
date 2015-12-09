@@ -191,4 +191,45 @@ GSGL.gl.sprite = {
 
 		return sprite;
 	},
+
+	AnimatedSprite : function(params) {
+		var animatedSprite = {
+			frames: [],
+			loop: false,
+			frameTime: 100,
+			currentFrame: 0,
+			currentDelta: 0,
+
+			constructor : function(params) {
+				for(key in params) {
+					if(this[key] != undefined) {
+						this[key] = params[key];
+					}
+				}
+			},
+
+			update : function(delta) {
+				this.currentDelta += delta;
+
+				if(this.currentDelta > this.frameTime) {
+					this.currentDelta = 0;
+					this.nextFrame();
+				}
+			},
+
+			nextFrame : function() {
+				this.currentFrame += 1;
+				if(this.currentFrame >= this.frames.length) {
+					this.currentFrame = 0;
+				}
+			},
+
+			render : function(x, y) {
+				this.frames[this.currentFrame].render(x, y);
+			}
+		};
+		animatedSprite.constructor(params);
+
+		return animatedSprite;
+	}
 };

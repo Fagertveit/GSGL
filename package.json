@@ -1,0 +1,32 @@
+{
+  "name": "gamesaw-gamelibrary",
+  "version": "0.0.1",
+  "description": "A HTML5 canvas gamelibrary with WebGL support",
+  "main": "./dist/gsgl.js",
+  "bin": {
+    "gamesaw-gamelibrary": "./dist/gsgl.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Fagertveit/GSGL.git"
+  },
+  "keywords": [
+    "HTML5",
+    "Game",
+    "Engine",
+    "WebGL",
+    "Canvas"
+  ],
+  "author": "Glenn Edberg",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Fagertveit/GSGL/issues"
+  },
+  "homepage": "https://github.com/Fagertveit/GSGL#readme",
+  "devDependencies": {
+    "gulp": "^3.9.0",
+    "gulp-concat": "^2.6.0",
+    "gulp-copy": "0.0.2",
+    "gulp-minify": "0.0.5"
+  }
+}

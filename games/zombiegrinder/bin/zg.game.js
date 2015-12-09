@@ -162,11 +162,7 @@ ZG.state.Game = function(params) {
 			this.grinderAnim[2].render(304, 512);
 			this.grinderAnim[3].render(320, 512);
 			this.grinderAnim[2].render(336, 512);
-		},
-
-		renderMashers : function() {
-
-		},
+		}
 	};
 	game.constructor(params);
 

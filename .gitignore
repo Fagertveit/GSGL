@@ -1,2 +1,3 @@
 # /games/*
 ./settings/*
+node_modules/*

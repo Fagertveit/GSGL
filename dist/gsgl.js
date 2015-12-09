@@ -6,7 +6,10 @@
 var GSGL = {
 	/* Global settings */
 	CONTAINER_ID : "gsgl-container",
-};GSGL.event = {
+	WIDTH : 640,
+	HEIGHT : 480,
+};
+GSGL.event = {
 	KEY : {
 		"BACKSPACE" : 8, "TAB" : 9, "ENTER" : 13, "SHIFT" : 16, "CTRL" : 17,
 		"ALT" : 18, "PAUSE" : 19, "CAPS" : 20, "ESCAPE" : 27, "PAGEUP" : 33,
@@ -219,7 +222,8 @@ var GSGL = {
 	TouchManager : function() {
 
 	},
-};GSGL.geometry = {
+};
+GSGL.geometry = {
 	Vector2D : function(x, y) {
 		var vector2d = {
 			x : 0.0,
@@ -935,7 +939,7 @@ var GSGL = {
 			},
 
 			removePoint : function(i) {
-				this.points.slice(i, 1);
+				this.points.splice(i, 1);
 			},
 
 			removeFirst : function() {
@@ -1190,7 +1194,8 @@ var GSGL = {
 
 		return bSpline;
 	},
-};GSGL.graphics = {
+};
+GSGL.graphics = {
 	Sprite : function(params) {
 		var sprite = {
 			uid: 0,
@@ -1215,6 +1220,7 @@ var GSGL = {
 			},
 
 			load : function(src) {
+				this.uid = $resourceManager.addResource("image");
 				this.source = src;
 				this.image.setAttribute("src", src);
 				
@@ -1239,6 +1245,7 @@ var GSGL = {
 
 			loadHandler : function(event) {
 				this.loaded = true;
+				$resourceManager.setLoaded(this.uid);
 			},
 
 			errorHandler : function(event) {
@@ -1353,6 +1360,10 @@ var GSGL = {
 
 			getRGBAFloat : function() {
 				return {r: this.toFloat(this.r), g: this.toFloat(this.g), b: this.toFloat(this.b), a: this.toFloat(this.a)};
+			},
+
+			getRGBAFloatArray : function() {
+				return [this.toFloat(this.r), this.toFloat(this.g), this.toFloat(this.b), this.a];
 			},
 
 			getRGBAInt : function() {
@@ -1503,7 +1514,8 @@ var GSGL = {
 
 		return color.getRGBAInt();
 	}
-};GSGL.physics = {
+};
+GSGL.physics = {
 	pointLine : function(point, line) {
 
 	},
@@ -1513,7 +1525,12 @@ var GSGL = {
 	},
 
 	pointCircle : function(point, circle) {
+		var v0, v1, len;
+		v0 = new GSGL.geometry.Vector2D(point.x, point.y);
+		v1 = new GSGL.geometry.Vector2D(circle.pos.x, circle.pos.y);
+		len = v1.subtract(v0).length();
 
+		return len < circle.radius;
 	},
 
 	pointRectangle : function(point, rectangle) {
@@ -1606,16 +1623,159 @@ var GSGL = {
 			return 0;
 		}
 	}
-};GSGL.surface = {
-	RenderingEngine : function(params) {
-		var renderingEngine = {
+};
+GSGL.resource = {
+	_UID : 0,
 
-		};
-		renderingEngine.constructor(params);
+	GetUniqueId : function() {
+		GSGL.resource._UID++;
 
-		return renderingEngine;
+		return GSGL.resource._UID;
 	},
 
+	ResourceManager : function(params) {
+		var resourceManager = {
+			resources : {},
+			total : {
+				images : 0,
+				imagesLoaded : 0,
+				audio : 0,
+				audioLoaded : 0,
+				files : 0,
+				filesLoaded : 0,
+			},
+
+			constructor : function(params) {
+				for(key in params) {
+					if(this[key] != undefined) {
+						this[key] = params[key];
+					}
+				}
+			},
+
+			addResource : function(type) {
+				var resource = new GSGL.resource.Resource({type: type, id: GSGL.resource.GetUniqueId()});
+				
+				this.resources[resource.getId()] = resource;
+				this.total.files += 1;
+
+				switch(type) {
+					case "image":
+						this.total.images += 1;
+						break;
+					case "audio":
+						this.total.audio += 1;
+						break;
+					default:
+						this.imageResources += 1;
+				}
+
+				return resource.getId();
+			},
+
+			setLoaded : function(id) {
+				this.resources[id].setLoaded(true);
+
+				this.total.filesLoaded += 1;
+
+				switch(this.resources[id].getType()) {
+					case "image":
+						this.total.imagesLoaded += 1;
+						break;
+					case "audio":
+						this.total.audioLoaded += 1;
+						break;
+				}
+			},
+
+			checkProgress : function(type) {
+				var response = {
+					total : 0,
+					loaded : 0,
+					percent : 0,
+				};
+
+				if(type != undefined) {
+					switch(type) {
+						case "image":
+							response.total = this.total.images;
+							response.loaded = this.total.imagesLoaded;
+							
+							break;
+						case "audio":
+							response.total = this.total.audio;
+							response.loaded = this.total.audioLoaded;
+							break;
+						default:
+							response.total = this.total.files;
+							response.loaded = this.total.filesLoaded;
+					}
+				} else {
+					response.total = this.total.files;
+					response.loaded = this.total.filesLoaded;
+				}
+
+				if(response.total != 0 && response.loaded != 0) {
+					response.percent = Math.ceil((response.loaded / response.total) * 100)
+				}
+
+				return response;
+			},
+
+			isLoaded : function() {
+				var response = this.checkProgress();
+				if(response.percent == 100) {
+					return true;
+				} else {
+					return false;
+				}
+			},
+		};
+		resourceManager.constructor(params);
+
+		return resourceManager;
+	},
+
+	Resource : function(params) {
+		var resource = {
+			id : 0,
+			type : "image",
+			loaded : false,
+
+			constructor : function(params) {
+				for(key in params) {
+					if(this[key] != undefined) {
+						this[key] = params[key];
+					}
+				}
+			},
+
+			getId : function() {
+				return this.id;
+			},
+
+			setType : function(type) {
+				this.type = type;
+			},
+
+			getType : function() {
+				return this.type;
+			},
+
+			setLoaded : function(loaded) {
+				this.loaded = loaded;
+			},
+
+			getLoaded : function() {
+				return this.loaded;
+			},
+		};
+		resource.constructor(params);
+
+		return resource;
+	},
+};
+GSGL.surface = {
 	Surface2D : function(params) {
 		var surface2d = {
 			logger: new GSGL.utility.Logger({type:"2d Surface"}),
@@ -1693,13 +1853,74 @@ var GSGL = {
 
 	Surface3D : function(params) {
 		var surface3d = {
+			logger: new GSGL.utility.Logger({type:"3d Surface"}),
+			width: 640,
+			height: 360,
+			pos: {
+				x: 0,
+				y: 0,
+				z: 1,
+			},
+			id: "",
+			canvas : {},
 
+			constructor : function(params) {
+				for(key in params) {
+					if(this[key] != undefined) {
+						this[key] = params[key];
+					}
+				}
+
+				this.logger.log("Created 3d Surface", this);
+
+				this.generateCanvas();
+			},
+
+			generateCanvas : function() {
+				var container = document.getElementById(GSGL.CONTAINER_ID);
+				this.canvas = document.createElement("canvas");
+
+				this.canvas.setAttribute('id', this.id);
+				this.canvas.setAttribute('width', this.width);
+				this.canvas.setAttribute('height', this.height);
+
+				this.canvas.style.position = "absolute";
+				this.canvas.style.top = this.pos.y;
+				this.canvas.style.left = this.pos.x;
+				this.canvas.style.zIndex = this.pos.z;
+
+				container.appendChild(this.canvas);
+			},
+
+			initContext : function() {
+				gl = null;
+				try {
+					gl = this.canvas.getContext("experimental-webgl", {preserveDrawingBuffer: true}) || this.canvas.getContext("webgl", {preserveDrawingBuffer: true});
+				} catch(e) {
+					this.logger.log("Doh!, Something went wrong: " + e);
+					return 0;
+				}
+
+				this.logger.log("WebGL initialized successfully!");
+				gl.clearColor(0.0, 0.0, 0.0, 1.0);
+			},
+
+			clear : function() {
+    			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+				gl.enable(gl.BLEND);
+				gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+			},
+
+			toUrl : function() {
+				return this.canvas.toDataURL("image/png");
+			},
 		};
 		surface3d.constructor(params);
 
 		return surface3d;
 	},
-};GSGL.ui = {
+};
+GSGL.ui = {
 	Button : function(params) {
 		var button = {
 			shape : {},
@@ -1796,9 +2017,50 @@ var GSGL = {
 
 		return checkbox;
 	},
-};GSGL.utility = {
+};
+GSGL.utility = {
 	EPSILON : 0.000001,
 	PI : Math.PI,
+
+	Ajax : function(params) {
+		var ajax = {
+			async : false,
+
+			constructor : function(params) {
+				for(key in params) {
+					if(this[key] != undefined) {
+						this[key] = params[key];
+					}
+				}
+			},
+
+			createXHR : function() {
+				try { return new XMLHttpRequest(); } catch(err) {}
+				try { return new ActiveXObject("Msxml2.XMLHTTP.6.0"); } catch(err) {}
+				try { return new ActiveXObject("Msxml2.XMLHTTP.3.0"); } catch(err) {}
+				try { return new ActiveXObject("Msxml2.XMLHTTP"); } catch(err) {}
+				try { return new ActiveXObject("Microsoft.XMLHTTP"); } catch(err) {}
+
+				return null;
+			},
+
+			load : function(src, callback) {
+				var xhr = this.createXHR();
+				if(xhr) {
+					xhr.open("GET", src, this.async);
+					xhr.onreadystatechange = function() {
+						if(xhr.readyState == 4 && xhr.status == 200) {
+							callback(xhr);
+						}
+					};
+					xhr.send(null);
+				}
+			}
+		};
+		ajax.constructor(params);
+
+		return ajax;
+	},
 
 	Logger : function(params) {
 		var logger = {
@@ -1856,5 +2118,1385 @@ var GSGL = {
 
 	capitalize : function(str) {
 		return str.charAt(0).toUpperCase() + str.slice(1);
+	},
+};
+GSGL.gl = {
+	VERTEX_SHADER : 0,
+	FRAGMENT_SHADER : 1,
+
+	Application : function(params) {
+		var application = {
+			container : '',
+			lastDelta : new Date().getTime(),
+			timerId : 0,
+			targetFps : 20,
+			lastUpdate : 0,
+			fps : 30,
+			frames : 0,
+			width : 640,
+			height : 480,
+			canvasId : "",
+			logger : new GSGL.utility.Logger({type: "WebGL Application"}),
+
+			constructor : function(params) {
+				for(key in params) {
+					if(this[key] != undefined) {
+						this[key] = params[key];
+					}
+				}
+
+				this.initGlobals();
+			},
+
+			initGlobals : function() {
+				$surface = new GSGL.surface.Surface3D({id: this.canvasId, width: this.width, height: this.height});
+				$surface.initContext();
+
+				GSGL.WIDTH = this.width;
+				GSGL.HEIGHT = this.height;
+
+				// Global mouse and keyboard event handelers.
+				$mouse = new GSGL.event.MouseManager({target: GSGL.CONTAINER_ID});
+				$keyboard = new GSGL.event.KeyboardManager();
+				// Global collision detection, takes to shapes and checks if they intersects.
+				$intersects = GSGL.physics.intersects;
+				// General AJAX helper class
+				$ajax = new GSGL.utility.Ajax({});
+				// Resource manager, keeps track so that everything is loaded right
+				$resources = new GSGL.resource.ResourceManager();
+				// Texture manager keeps track on active textures
+				$textureManager = new GSGL.gl.texture.TextureManager();
+				// Shader manager keeps track on all shader programs and loading/compiling of shaders
+				$shaderManager = new GSGL.gl.shader.ShaderManager();
+				// Render manager handles all rendercalls and optimize GPU communication
+				$renderManager = new GSGL.gl.render.RenderManager2D();
+			},
+
+			start : function() {
+				var _this = this;
+
+				if($resources.isLoaded()) {
+					this.timerId = window.setInterval(function() {
+						_this.step();
+					}, (1000/_this.targetFps));
+				} else {
+					window.setTimeout(function() {
+						_this.start();
+					}, 100)
+				}
+			},
+
+			stop : function() {
+				window.clearInterval(this.timerId);
+			},
+
+			step : function() {
+				this.update();
+			},
+
+			update : function() {
+				var now = new Date().getTime();
+				var delta = now - this.lastDelta;
+				this.lastDelta = now;
+
+				this.state.update(delta);
+				this.state.render(delta);
+
+				// Check if the user wants to render the FPS
+				if(this.showFps) {
+					this.renderFps();
+				}
+
+				if(now - this.lastUpdate > 1000) {
+					this.fps = this.frames;
+					this.frames = 0;
+					this.lastUpdate = now;
+				} else {
+					this.frames += 1;
+				}
+
+				$mouse.clearClicks();
+			},
+
+			/* Set State
+			 * * * * * * *
+			 * This is were we init the application or it's childstates, we do this by stopping current state
+			 * and init the new state, then we call the start method that checks if everything is loaded before
+			 * it start the state loop. We can add functionality here so that we run the splash/loading screen
+			 * betwixt states, and at the start of the application.
+			 *
+			 * The state always keeps a reference to this class as it needs it for global application
+			 * commands as well as state changes.
+			 *
+			 * ToDo: Write a general purpose Splash/Loader for state changes.
+			 */
+			setState : function(state) {
+				var _this = this;
+				this.stop();
+				this.state = new state({application: _this});
+				this.start();
+			},
+		};
+		application.constructor(params);
+
+		return application;
+	},
+};
+GSGL.gl.shader = {
+	ShaderManager : function(params) {
+		var shaderManager = {
+			programs : {},
+
+			constructor : function(params) {
+				for(key in params) {
+					if(this[key] != undefined) {
+						this[key] = params[key];
+					}
+				}
+			},
+
+			createProgram : function(fShader, vShader, id) {
+				this.programs[id] = new GSGL.gl.shader.Program();
+				this.programs[id].initShaders(fShader, vShader);
+			},
+
+			getProgram : function(id) {
+				return this.programs[id].getProgram();
+			},
+
+			useProgram : function(id) {
+				gl.useProgram(this.programs[id].getProgram());
+			},
+		};
+		shaderManager.constructor(params);
+
+		return shaderManager;
+	},
+
+	Program : function(params) {
+		var program = {
+			vShader : {},
+			fShader : {},
+			program : {},
+			logger : new GSGL.utility.Logger("shader"),
+
+			constructor : function(params) {
+				for(key in params) {
+					if(this[key] != undefined) {
+						this[key] = params[key];
+					}
+				}
+			},
+
+			loadShader : function(type, shader) {
+				var shaderScript = shader;
+
+				if(type == GSGL.gl.VERTEX_SHADER) {
+					this.vShader = this.compileShader(type, shader);
+				} else {
+					this.fShader = this.compileShader(type, shader);
+				}
+			},
+
+			compileShader : function(type, shaderSrc) {
+				var shader;
+
+				if(type == GSGL.gl.VERTEX_SHADER) {
+					shader = gl.createShader(gl.VERTEX_SHADER);
+				} else if(type == GSGL.gl.FRAGMENT_SHADER) {
+					shader = gl.createShader(gl.FRAGMENT_SHADER);
+				} else {
+					this.logger.log("No valid shader type specified");
+					return 0;
+				}
+
+				gl.shaderSource(shader, shaderSrc);
+				gl.compileShader(shader);
+
+				if(!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+					this.logger.log(gl.getShaderInfoLog(shader));
+					return 0;
+				} else {
+					this.logger.log("Shader compiled correctly.");
+					return shader;
+				}
+			},
+
+			initShaders : function(fShaderSrc, vShaderSrc) {
+				var _this = this;
+
+				$ajax.load(fShaderSrc, function(data) {
+					_this.loadShader(GSGL.gl.FRAGMENT_SHADER, data.responseText);
+				});
+				$ajax.load(vShaderSrc, function(data) {
+					_this.loadShader(GSGL.gl.VERTEX_SHADER, data.responseText);
+				});
+
+				this.program = gl.createProgram();
+
+				gl.attachShader(this.program, this.vShader);
+				gl.attachShader(this.program, this.fShader);
+				gl.linkProgram(this.program);
+
+				if(!gl.getProgramParameter(this.program, gl.LINK_STATUS)) {
+					this.logger.log("Unable to initialize the shader program.");
+				} else {
+					this.logger.log("Shader program initialized without error.");
+					gl.useProgram(this.program);
+				}
+			},
+
+			getProgram : function() {
+				return this.program;
+			},
+		};
+		program.constructor(params);
+
+		return program;
+	},
+};
+GSGL.gl.particle = {
+	Particle : function(params) {
+		var particle = {
+			pos : {
+				x: 0,
+				y: 0,
+			},
+			vel : 1,
+			dir : {
+				x: 0,
+				y: 0,
+			},
+			angleVel : 0,
+			size : 1,
+			startLife : 1000,
+			life : 0,
+			alpha : 1.0,
+
+			constructor : function() {
+				for(key in params) {
+					if(this[key] != undefined) {
+						this[key] = params[key];
+					}
+				}
+			},
+
+			update : function(gravity, wind, growth, delta) {
+				this.life -= delta;
+				this.size += growth;
+				this.dir.y += gravity;
+				this.dir.x += wind;
+				this.pos.x += (this.dir.x * this.vel);
+				this.pos.y += (this.dir.y * this.vel);
+			},
+
+			isDead : function() {
+				if(this.life < 0) {
+					return true;
+				}
+
+				return false;
+			}
+			
+		};
+		particle.constructor(params);
+
+		return particle;
+	},
+
+	/* ParticleEmitter
+	 * * * * * * * * * *
+	 * The ParticleEmitter keeps reference to all the particles, and handles rendering of the particles.
+	 * You can use different rendering blend modes on the emitter level, so a ParticleSystem can have Emitters with
+	 * multiple different blend modes to get desired effects.
+	 * The particle emitter has a shader program that it uses in the rendering process, this is specific for particle rendering
+	 */
+	ParticleEmitter : function(params) {
+		var particleEmitter = {
+			particles : [],
+			texture : {},
+			pos : {
+				x : 0,
+				y : 0,
+			},
+			dir : {
+				max : {
+					x : 0,
+					y : 0,
+				},
+				min : {
+					x : 0,
+					y : 0,
+				},
+			},
+			vel : {
+				min : 2,
+				max : 5
+			},
+			startSize : {
+				min : 16.0,
+				max : 32.0
+			},
+			constant : false,
+			growth : 0.1,
+			color : [0.9, 0.5, 0.1, 0.4],
+			angularVel : 0,
+			gravity : 0,
+			wind : 0,
+			life : {
+				min : 200,
+				max : 500
+			},
+			particlesPerSecond : 100,
+			particlesAtStart : 100,
+			lifeCycle : 1000,
+			currLife : 0,
+			shaderManager : {},
+			blendSrc : gl.SRC_ALPHA,
+			blendDst : gl.ONE,
+			program: {},
+			vertices: [],
+			sizes: [],
+
+			constructor : function() {
+				for(key in params) {
+					if(this[key] != undefined) {
+						this[key] = params[key];
+					}
+				}
+			},
+
+			update : function(delta) {
+				// Clear last frame
+				this.vertices.splice(0, this.vertices.length);
+				this.sizes.splice(0, this.sizes.length);
+
+				if(this.constant) {
+					var numParticles = Math.ceil((delta / 1000) * this.particlesPerSecond);
+					var i = 0;
+
+					for(i; i < numParticles; i += 1) {
+						this.addParticle();
+					}
+				} else {
+					this.currLife -= delta;
+
+					if(this.currLife < 0) {
+						var i = 0;
+
+						for(i; i < this.particlesAtStart; i += 1) {
+							this.addParticle();
+						}
+
+						this.currLife = this.lifeCycle;
+					}
+				}
+
+				i = 0;
+				var len = this.particles.length;
+
+				for(i; i < len; i += 1) {
+					this.particles[i].update(this.gravity, this.wind, this.growth, delta);
+
+					if(this.particles[i].isDead()) {
+						this.particles.splice(i, 1);
+						len -= 1;
+					} else {
+						this.vertices.push(this.particles[i].pos.x);
+						this.vertices.push(this.particles[i].pos.y);
+						this.sizes.push(this.particles[i].size);
+					}
+				}
+			},
+
+			addParticle : function() {
+				var particle = new GSGL.gl.particle.Particle({
+					pos : {x: this.pos.x, y: this.pos.y},
+					vel : this.randomMinMax(this.vel.min, this.vel.max),
+					dir : {x: this.randomMinMax(this.dir.min.x, this.dir.max.x), y: this.randomMinMax(this.dir.min.y, this.dir.max.y)},
+					angle : 0,
+					angleVel : this.angleVel,
+					size : this.randomMinMax(this.startSize.min, this.startSize.max),
+					startLife : this.life,
+					life : this.randomMinMax(this.life.min, this.life.max),
+					alpha : 1.0,
+				});
+
+				this.particles.push(particle);
+			},
+
+			randomMinMax : function(min, max) {
+				return (Math.random() * (max - min)) + min;
+			},
+
+			render : function(delta) {
+				var program = $shaderManager.getProgram("particle")
+				gl.useProgram(program);
+				gl.enable(gl.BLEND);
+				gl.blendFunc(this.blendSrc, this.blendDst);
+
+				this.resolutionLoc = gl.getUniformLocation(program, "u_resolution");
+				gl.uniform2f(this.resolutionLoc, GSGL.WIDTH, GSGL.HEIGHT);
+
+				this.positionLoc = gl.getAttribLocation(program, "a_position");
+				this.pointSizeLoc = gl.getAttribLocation(program, "a_pointSize");
+				this.colorLoc = gl.getUniformLocation(program, "u_color");
+
+				gl.bindTexture(gl.TEXTURE_2D, this.texture);
+
+				gl.uniform4f(this.colorLoc, this.color[0], this.color[1], this.color[2], this.color[3]);
+				
+				var vertexBuffer = gl.createBuffer();
+
+				gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+				gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.vertices), gl.STATIC_DRAW);
+				gl.enableVertexAttribArray(this.positionLoc);
+				gl.vertexAttribPointer(this.positionLoc, 2, gl.FLOAT, false, 0, 0);
+
+				var sizeBuffer = gl.createBuffer();
+
+				gl.bindBuffer(gl.ARRAY_BUFFER, sizeBuffer);
+				gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.sizes), gl.STATIC_DRAW);
+				gl.enableVertexAttribArray(this.pointSizeLoc);
+				gl.vertexAttribPointer(this.pointSizeLoc, 1, gl.FLOAT, false, 0, 0);
+
+				gl.drawArrays(gl.POINTS, 0, this.vertices.length / 2);
+				
+				gl.disableVertexAttribArray(this.positionLoc);
+				gl.disableVertexAttribArray(this.pointSizeLoc);
+			},
+		};
+		particleEmitter.constructor(params);
+
+		return particleEmitter;
+	},
+
+	ParticleSystem : function(params) {
+		var particleSystem = {
+			emitters : [],
+			// FBO thingamajigs
+			FBOTexture : {},
+			FBOWidth : 512,
+			FBOHeight : 512,
+			FBO : {},
+
+			constructor : function() {
+				for(key in params) {
+					if(this[key] != undefined) {
+						this[key] = params[key];
+					}
+				}
+			},
+
+			addEmitter : function(emitter) {
+				this.emitters.push(emitter);
+			},
+
+			removeEmitter : function(emitter) {
+				this.emitters.splice(emitter, 1);
+			},
+
+			switchEmitter : function(src, target) {
+				var tempEmitter = this.emitters[target];
+
+				this.emitters[target] = this.emitters[src];
+				this.emitters[src] = tempEmitter;
+			},
+
+			getParticleAmount : function() {
+				var i = 0;
+				var len = this.emitters.length;
+				var particles = 0;
+
+				for(i; i < len; i += 1) {
+					particles += this.emitters[i].particles.length;
+				}
+
+				return particles;
+			},
+
+			update : function(delta) {
+				var i = 0;
+				var len = this.emitters.length;
+
+				for(i; i < len; i += 1) {
+					this.emitters[i].update(delta);
+				}
+			},
+
+			render : function(delta) {
+				var i = 0;
+				var len = this.emitters.length;
+
+				for(i; i < len; i += 1) {
+					this.emitters[i].render(delta);
+				}
+			},
+
+			bindFBO : function() {
+				this.FBO = gl.createFramebuffer();
+				gl.bindFramebuffer(gl.FRAMEBUFFER, this.FBO);
+
+				this.FBO.width = this.FBOWidth;
+				this.FBO.height = this.FBOHeight;
+
+				this.FBOTexture = gl.createTexture();
+				gl.bindTexture(gl.TEXTURE_2D, this.FBOTexture);
+				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+
+				gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.FBOWidth, this.FBOHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+
+				var renderBuffer = gl.createRenderbuffer();
+
+				gl.bindRenderbuffer(gl.RENDERBUFFER, renderBuffer);
+				gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, this.FBOWidth, this.FBOHeight);
+
+				gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.FBOTexture, 0);
+				gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, renderBuffer);
+
+				gl.bindTexture(gl.TEXTURE_2D, null);
+				gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+				gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+			},
+		};
+		particleSystem.constructor(params);
+
+		return particleSystem;
+	},
+}
+/* GL Font
+ * * * * * *
+ * 
+ */
+
+GSGL.gl.font = {
+	Font : function(params) {
+		var font = {
+			sprite : [],
+			loaded : [],
+			glyphs : [],
+			config : {},
+			base : 0,
+			lineHeight : 0,
+			color : [1.0, 1.0, 1.0, 1.0],
+			customSprite : false,
+			src : "",
+			align : "left",
+
+			constructor : function(params) {
+				for(key in params) {
+					if(this[key] != undefined) {
+						this[key] = params[key];
+					}
+				}
+
+				if(this.src != "") {
+					this.load(this.src);
+				}
+			},
+
+			load : function(src) {
+				var _this = this;
+				$ajax.load(src, function(data) {
+					_this.config = data.responseXML;
+					if(_this.customSprite) {
+						_this.parseConfigCustomSprite();
+					} else {
+						_this.parseConfig();
+					}
+				});
+			},
+
+			configCustomSprite : function(texture, mapWidth, mapHeight, startX, startY, width, height) {
+
+			},
+
+			createSprite : function(id) {
+				
+			},
+
+			parseConfig : function() {
+				var _this = this;
+				var _id;
+				var pages = this.config.getElementsByTagName("page");
+				var chars = this.config.getElementsByTagName("char");
+				var common = this.config.getElementsByTagName("common");
+
+				this.lineHeight = parseInt(common[0].getAttribute("lineHeight"));
+				this.base = parseInt(common[0].getAttribute("base"));
+				this.scaleW = parseInt(common[0].getAttribute("scaleW"));
+				this.scaleH = parseInt(common[0].getAttribute("scaleH"));
+
+				var i = 0;
+				var len = pages.length;
+
+				for(i; i < len; i += 1) {
+					var id = pages[i].getAttribute("id");
+					var file = pages[i].getAttribute("file");
+
+					$textureManager.addTexture("font/" + file, "font" + id);
+					this.sprite[id] = new GSGL.gl.sprite.Sprite({
+						texture: "font" + id, 
+						width: this.scaleW, 
+						height: this.scaleH, 
+						hasColor: true,
+						color: this.color
+					});
+				}
+
+				i = 0;
+				len = chars.length;
+
+				for(i; i < len; i += 1) {
+					var id, x, y, width, height, xoffset, yoffset, xadvance, page;
+					id = parseInt(chars[i].getAttribute("id"));
+					x = parseInt(chars[i].getAttribute("x"));
+					y = parseInt(chars[i].getAttribute("y"));
+					width = parseInt(chars[i].getAttribute("width"));
+					height = parseInt(chars[i].getAttribute("height"));
+					xoffset = parseInt(chars[i].getAttribute("xoffset"));
+					yoffset = parseInt(chars[i].getAttribute("yoffset"));
+					xadvance = parseInt(chars[i].getAttribute("xadvance"));
+					page = parseInt(chars[i].getAttribute("page"));
+
+					this.glyphs[id] = new GSGL.gl.font.Glyph({x: x, y: y, width: width, height: height, xOffset: xoffset, yOffset: yoffset, xAdvance: xadvance, page: page});
+				}
+			},
+
+			parseConfigCustomSprite : function(texture, mapWidth, mapHeight, startX, startY, width, height) {
+
+			},
+
+			setColor : function(r, g, b, a) {
+				this.color = [r, g, b, a];
+
+				var i = 0;
+				var len = this.sprite.length;
+
+				for(i; i < len; i += 1) {
+					this.sprite[i].setColor(r, g, b, a);
+				}
+			},
+
+			setAlign : function(align) {
+				this.align = align;
+			},
+
+			getAlign : function() {
+				return this.align;
+			},
+
+			getLineHeight : function() {
+				return this.lineHeight;
+			},
+
+			getBase : function() {
+				return this.base;
+			},
+
+			drawString : function(str, x, y) {
+				var currentX = x;
+				var currentY = 0;
+
+				var i = 0;
+				var len = str.length;
+
+				if(this.align == "center") {
+					var strWidth = this.stringWidth(str);
+					currentX = x - Math.floor(strWidth / 2);
+				} else if(this.align == "right") {
+					var strWidth = this.stringWidth(str);
+					currentX = x - strWidth;
+				}
+
+				for(i; i < len; i += 1) {
+					var id = str.charCodeAt(i);
+					
+					if(this.glyphs[id] != undefined) {
+						this.sprite[this.glyphs[id].page].renderSub(currentX + this.glyphs[id].xOffset, y + this.glyphs[id].yOffset, this.glyphs[id].x, this.glyphs[id].y, this.glyphs[id].width, this.glyphs[id].height);
+						currentX += this.glyphs[id].xAdvance;
+					}
+				}
+			},
+
+			stringWidth : function(str) {
+				var width = 0;
+				var i = 0;
+				var len = str.length;
+
+				for(i; i < len; i += 1) {
+					var id = str.charCodeAt(i);
+
+					width += this.glyphs[id].xAdvance;
+				}
+
+				return width;
+			},
+		};
+		font.constructor(params);
+
+		return font;
+	},
+
+	Glyph : function(params) {
+		var glyph = {
+			x : 0,
+			y : 0,
+			xOffset : 0,
+			yOffset : 0,
+			width : 0,
+			height : 0,
+			xAdvance : 0,
+			page : 0,
+
+			constructor : function(params) {
+				for(key in params) {
+					if(this[key] != undefined) {
+						this[key] = params[key];
+					}
+				}
+			},
+		};
+		glyph.constructor(params);
+
+		return glyph;
+	},
+};
+/* WebGL Renderer
+ * * * * * * * * * * *
+ * We need to render things in the right order with the right texture and shader program and blending.
+ * We need to push things into batches as often as we can, so we need to identify a global routine for rendering
+ * everything in the rendering loop. Let's try to push the particle batch into this as well.
+ * These are the things we need to setup each batch
+ * * Z-Order
+ * * Texture
+ * * Shader Program
+ * * Blender
+ * Let's figure out how to sort rendercalls in a natural and optimized way:
+ * * Z-Index
+ * * * Program
+ * * * * Texture
+ * * * * Blendning
+ */
+GSGL.gl.render = {
+	RenderManager2D : function(params) {
+		var renderManager2d = {
+			uid : 0,
+			renderCalls : {},
+			// Shader Attributes
+			positionLoc : {},
+			texCoordLoc : {},
+			// Shader Uniforms
+			colorLoc : {},
+			noTextureLoc : {},
+			noColorLoc : {},
+			resolutionLoc : {},
+			// Buffer objects
+			vertexBuffer : {},
+			indicesBuffer : {},
+			texCoordBuffer : {},
+			
+			constructor : function(params) {
+				for(key in params) {
+					if(this[key] != undefined) {
+						this[key] = params[key];
+					}
+				}
+			},
+
+			initRenderer : function() {
+				var program = $shaderManager.getProgram("default");
+
+				this.resolutionLoc = gl.getUniformLocation(program, "u_resolution");
+				this.positionLoc = gl.getAttribLocation(program, "a_position");
+				this.texCoordLoc = gl.getAttribLocation(program, "a_texCoord");
+				this.colorLoc = gl.getUniformLocation(program, "u_color");
+				this.noTextureLoc = gl.getUniformLocation(program, "no_texture");
+				this.noColorLoc = gl.getUniformLocation(program, "no_color");
+
+				this.vertexBuffer = gl.createBuffer();
+				this.indicesBuffer = gl.createBuffer();
+				this.texCoordBuffer = gl.createBuffer();
+			},
+
+			clearCalls : function() {
+				this.renderCalls = {};
+			},
+
+			addToCall : function(zIndex, program, texture, renderCall) {
+				var id = "" + zIndex + ";" + program + ";" + texture;
+				if(renderCall.hasColor) {
+					id += ";r" + renderCall.color[0] + ";g" + renderCall.color[1] + ";b" + renderCall.color[2] + ";a" + renderCall.color[3];
+				} 
+
+				if(this.renderCalls[id] == undefined) {
+					this.renderCalls[id] = new GSGL.gl.render.RenderCall({
+						texture: texture,
+						program: program,
+						zIndex: zIndex
+					});
+				}
+
+				this.renderCalls[id].add(renderCall);
+			},
+
+			orderByZIndex : function() {
+				// We sort the calls in z-index order so that we render it in the right order.
+			},
+
+			render : function() {
+				this.flush();
+				this.clearCalls();
+			},
+
+			flush : function() {
+				gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+				gl.uniform2f(this.resolutionLoc, GSGL.WIDTH, GSGL.HEIGHT);
+
+				for(key in this.renderCalls) {
+					if(this.renderCalls[key].hasTexture) {
+						gl.uniform1i(this.noTextureLoc, 0);
+						gl.bindTexture(gl.TEXTURE_2D, $textureManager.getTexture(this.renderCalls[key].texture));
+					} else {
+						gl.uniform1i(this.noTextureLoc, 1);
+					}
+
+					if(this.renderCalls[key].hasColor) {
+						gl.uniform1i(this.noColorLoc, 0);
+						gl.uniform4f(this.colorLoc, this.renderCalls[key].color[0], this.renderCalls[key].color[1], this.renderCalls[key].color[2], this.renderCalls[key].color[3]); 
+					} else {
+						gl.uniform1i(this.noColorLoc, 1);
+					}
+
+					gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
+					gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.renderCalls[key].vertices), gl.STATIC_DRAW);
+					gl.enableVertexAttribArray(this.positionLoc);
+					gl.vertexAttribPointer(this.positionLoc, 2, gl.FLOAT, false, 0, 0);
+
+					gl.bindBuffer(gl.ARRAY_BUFFER, this.texCoordBuffer);
+					gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.renderCalls[key].uvs), gl.STATIC_DRAW);
+					gl.enableVertexAttribArray(this.texCoordLoc);
+					gl.vertexAttribPointer(this.texCoordLoc, 2, gl.FLOAT, false, 0, 0);
+
+					gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indicesBuffer);
+					gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.renderCalls[key].indices), gl.STATIC_DRAW);
+					
+					gl.drawElements(gl.TRIANGLES, this.renderCalls[key].numIndices, gl.UNSIGNED_SHORT, 0);
+				}
+			},
+		};
+		renderManager2d.constructor(params);
+
+		return renderManager2d;
+	},
+
+	/* RenderCall
+	 * * * * * * * *
+	 * A RenderCall is a collection of renderable objects that uses the same general resources, thus being able to 
+	 * push these through the GPU at the same time. The rendercalls are divided using the following parameters:
+	 * * Z-Index
+	 * * Shader
+	 * * Texture
+	 * * Blend Mode
+	 * The rendercall contains the following information:
+	 * * Texture
+	 * * Program
+	 * * Blend Mode
+	 * * Vertices
+	 * * Vertex Indices
+	 * * UV coords
+	 */
+	RenderCall : function(params) {
+		var renderCall = {
+			vertices: [],
+			indices: [],
+			uvs: [],
+			index: 0,
+			numIndices: 0,
+			texture: {},
+			program: {},
+			zIndex: 0,
+			color: [0.0, 0.0, 0.0, 1.0],
+			hasColor: false,
+			hasTexture: true,
+
+			constructor : function(params) {
+				for(key in params) {
+					if(this[key] != undefined) {
+						this[key] = params[key];
+					}
+				}
+			},
+
+			add : function(renderCall) {
+				this.vertices = this.vertices.concat(renderCall.vertices);
+				this.uvs = this.uvs.concat(renderCall.uvs);
+
+				var i = 0;
+				var len = renderCall.indices.length;
+
+				for(i; i < len; i += 1) {
+					this.indices.push(renderCall.indices[i] + this.index);
+				}
+
+				this.index += this.findMaxIndex(renderCall.indices);
+
+				this.numIndices += renderCall.numIndices;
+
+				if(renderCall.hasColor) {
+					this.hasColor = true;
+					this.color = renderCall.color;
+				}
+			},
+
+			findMaxIndex : function(indices) {
+				var i = 0;
+				var len = indices.length;
+				var max = 0;
+
+				for(i; i < len; i += 1) {
+					if(indices[i] > max) {
+						max = indices[i];
+					}
+				}
+
+				max += 1;
+
+				return max;
+			},
+
+			flush : function() {
+				this.vertices = [];
+				this.indices = [];
+				this.uvs = [];
+				this.index = 0;
+				this.numIndices = 0;
+			},
+
+			setProgram : function(program) {
+				this.program = program;
+			},
+
+			setTexture : function(texture) {
+				this.texture = texture;
+			},
+
+			setZIndex : function(zIndex) {
+				this.zIndex = zIndex;
+			}
+		};
+		renderCall.constructor(params);
+
+		return renderCall;
+	},
+}
+GSGL.gl.texture = {
+	/* GL TextureManager
+	 * * * * * * * * * * *
+	 * Global - $texture
+	 * The Texture Manager keeps track of all the active textures used in the application, it stores the webGL textures and
+	 * deletes it when not needed anylonger. Sprites use the texture manager to assign textures to specific sprites.
+	 */
+	TextureManager : function(params) {
+		var textureManager = {
+			textures : {},
+
+			constructor : function(params) {
+				for(key in params) {
+					if(this[key] != undefined) {
+						this[key] = params[key];
+					}
+				}
+			},
+
+			addTexture : function(src, id) {
+				this.textures[id] = new GSGL.gl.texture.Texture({src: src});
+			},
+
+			removeTexture : function(id) {
+				gl.deleteTexture(this.texture[id].texture);
+			},
+
+			getTexture : function(id) {
+				return this.textures[id].texture;
+			},
+		};
+		textureManager.constructor(params);
+
+		return textureManager;
+	},
+
+	Texture : function(params) {
+		var texture = {
+			id : 0,
+			image : new Image(),
+			logger : new GSGL.utility.Logger('image'),
+			width : 0,
+			height : 0,
+			texture : null,
+			isLoaded : false,
+			isReady : false,
+			onLoaded : {},
+			src : "",
+
+			constructor : function(params) {
+				for(key in params) {
+					if(this[key] != undefined) {
+						this[key] = params[key];
+					}
+				}
+
+				if(this.src != "") {
+					this.load(this.src);
+				}
+			},
+
+			load : function(src) {
+				this.texture = gl.createTexture();
+				this.id = $resources.addResource("image");
+				this.addEventListeners();
+				this.image.src = src;
+			},
+
+			init : function() {
+				gl.bindTexture(gl.TEXTURE_2D, this.texture);
+
+				gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.image);
+
+				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+				gl.bindTexture(gl.TEXTURE_2D, null);
+
+				this.isReady = true;
+			},
+
+			loadedHandler : function(event) {
+				this.isLoaded = true
+				this.width = this.image.width;
+				this.height = this.image.height;
+
+				$resources.setLoaded(this.id);
+
+				this.init();
+
+				if(typeof(this.onLoaded) == "function") {
+					this.onLoaded();
+				}	
+			},
+
+			errorHandler : function(event) {
+				this.logger.log("Failed to load image " + this.image.src);
+			},
+
+			addEventListeners : function() {
+				var _this = this;
+
+				this.image.addEventListener("load", function(event) {
+					_this.loadedHandler(event);
+				}, true);
+
+				this.image.addEventListener("error", function(event) {
+					_this.errorHandler(event);
+				}, true);
+			},
+		};
+		texture.constructor(params);
+
+		return texture;
+	},
+};
+GSGL.gl.sprite = {
+	Sprite : function(params) {
+		var sprite = {
+			uv : [0.0, 0.0, 1.0, 1.0],
+			color : [1.0, 1.0, 1.0, 1.0],
+			width : 0,
+			height : 0,
+			texture : "",
+			hasColor : false,
+			zIndex : 0,
+			program : "default",
+
+			constructor : function(params) {
+				for(key in params) {
+					if(this[key] != undefined) {
+						this[key] = params[key];
+					}
+				}
+			},
+
+			setUV : function(x0, y0, x1, y1) {
+				this.uv = [x0, y0, x1, y1];
+			},
+
+			setUVPixels : function(mapWidth, mapHeight, x, y, width, height) {
+				this.uv = [(x / mapWidth), (y / mapHeight), ((x + width) / mapWidth), ((y + height) / mapHeight)];
+			},
+
+			setColor : function(r, g, b, a) {
+				this.color = [r,g,b,a];
+			},
+
+			render : function(x, y, returnCall) {
+				var renderCall = {
+					texture : this.texture,
+					vertices : [x, y,
+					            x + this.width, y,
+					            x, y + this.height,
+					            x + this.width, y + this.height],
+					uvs : [this.uv[0], this.uv[1],
+					       this.uv[2], this.uv[1],
+					       this.uv[0], this.uv[3],
+					       this.uv[2], this.uv[3]],
+					indices : [0, 1, 2, 1, 2, 3],
+					numIndices : 6
+				};
+
+				var unique = false;
+
+				if(this.hasColor) {
+					renderCall.hasColor = true;
+					renderCall.color = this.color;
+				}
+
+				$renderManager.addToCall(this.zIndex, this.program, this.texture, renderCall);
+			},
+
+			renderScale : function(x, y, scale) {
+				var renderCall = {
+					texture : this.texture,
+					vertices : [x, y,
+								x + (this.width * scale), y,
+								x, y + (this.height * scale),
+								x + (this.width * scale), y + (this.height * scale)],
+					uvs : [this.uv[0], this.uv[1],
+						   this.uv[2], this.uv[1],
+						   this.uv[0], this.uv[3],
+						   this.uv[2], this.uv[3]],
+					indices : [0, 1, 2, 1, 2, 3],
+					numIndices : 6
+				};
+
+				if(this.hasColor) {
+					renderCall.hasColor = true;
+					renderCall.color = this.color;
+				}
+
+				$renderManager.addToCall(this.zIndex, this.program, this.texture, renderCall);
+			},
+
+			renderAngle : function(x, y, angle) {
+				var vectors = [];
+				var px, py;
+				px = x + (this.width / 2);
+				py = y + (this.height / 2);
+
+				vectors[0] = new GSGL.geometry.Vector2D(x, y);
+				vectors[1] = new GSGL.geometry.Vector2D(x + this.width, y);
+				vectors[2] = new GSGL.geometry.Vector2D(x, y + this.height);
+				vectors[3] = new GSGL.geometry.Vector2D(x + this.width, y + this.height);
+
+				var i = 0;
+				var len = 4;
+
+				for(i; i < len; i += 1) {
+					vectors[i] = vectors[i].rotatePivot(px, py, GSGL.utility.degreeToRadian(angle));
+				}
+
+				var renderCall = {
+						texture : this.texture,
+						vertices : [vectors[0].x, vectors[0].y,
+						            vectors[1].x, vectors[1].y,
+						            vectors[2].x, vectors[2].y,
+						            vectors[3].x, vectors[3].y,],
+						uvs : [this.uv[0], this.uv[1],
+						       this.uv[2], this.uv[1],
+						       this.uv[0], this.uv[3],
+						       this.uv[2], this.uv[3]],
+						indices : [0, 1, 2, 1, 2, 3],
+						numIndices : 6
+				};
+
+				if(this.hasColor) {
+					renderCall.hasColor = true;
+					renderCall.color = this.color;
+				}
+
+				$renderManager.addToCall(this.zIndex, this.program, this.texture, renderCall);
+			},
+
+			renderAngleScale : function(x, y, angle, scale) {
+				var vectors = [];
+				var px, py;
+				px = x + ((this.width * scale) / 2);
+				py = y + ((this.height * scale) / 2);
+
+				vectors[0] = new GSGL.geometry.Vector2D(x, y);
+				vectors[1] = new GSGL.geometry.Vector2D(x + (this.width * scale), y);
+				vectors[2] = new GSGL.geometry.Vector2D(x, y + (this.height * scale));
+				vectors[3] = new GSGL.geometry.Vector2D(x + (this.width * scale), y + (this.height * scale));
+
+				var i = 0;
+				var len = 4;
+
+				for(i; i < len; i += 1) {
+					vectors[i] = vectors[i].rotatePivot(px, py, GSGL.utility.degreeToRadian(angle));
+				}
+
+				var renderCall = {
+						texture : this.texture,
+						vertices : [vectors[0].x, vectors[0].y,
+						            vectors[1].x, vectors[1].y,
+						            vectors[2].x, vectors[2].y,
+						            vectors[3].x, vectors[3].y,],
+						uvs : [this.uv[0], this.uv[1],
+						       this.uv[2], this.uv[1],
+						       this.uv[0], this.uv[3],
+						       this.uv[2], this.uv[3]],
+						indices : [0, 1, 2, 1, 2, 3],
+						numIndices : 6
+				};
+
+				if(this.hasColor) {
+					renderCall.hasColor = true;
+					renderCall.color = this.color;
+				}
+
+				$renderManager.addToCall(this.zIndex, this.program, this.texture, renderCall);
+			},
+
+			renderSub : function(x, y, subX, subY, subWidth, subHeight, returnCall) {
+				var suv = [];
+				suv[0] = parseFloat(subX) / parseFloat(this.width);
+				suv[1] = parseFloat(subY) / parseFloat(this.height);
+				suv[2] = parseFloat(subX + subWidth) / parseFloat(this.width);
+				suv[3] = parseFloat(subY + subHeight) / parseFloat(this.height);
+
+				var renderCall = {
+						texture : this.texture,
+						vertices : [x, y,
+						            x + subWidth, y,
+						            x, y + subHeight,
+						            x + subWidth, y + subHeight],
+						uvs : [suv[0], suv[1],
+						       suv[2], suv[1],
+						       suv[0], suv[3],
+						       suv[2], suv[3]],
+						indices : [0, 1, 2, 1, 2, 3],
+						numIndices : 6
+				};
+
+				if(this.hasColor) {
+					renderCall.hasColor = true;
+					renderCall.color = this.color;
+				}
+
+				$renderManager.addToCall(this.zIndex, this.program, this.texture, renderCall);
+			},
+		};
+		sprite.constructor(params);
+
+		return sprite;
+	},
+
+	AnimatedSprite : function(params) {
+		var animatedSprite = {
+			frames: [],
+			loop: false,
+			frameTime: 100,
+			currentFrame: 0,
+			currentDelta: 0,
+
+			constructor : function(params) {
+				for(key in params) {
+					if(this[key] != undefined) {
+						this[key] = params[key];
+					}
+				}
+			},
+
+			update : function(delta) {
+				this.currentDelta += delta;
+
+				if(this.currentDelta > this.frameTime) {
+					this.currentDelta = 0;
+					this.nextFrame();
+				}
+			},
+
+			nextFrame : function() {
+				this.currentFrame += 1;
+				if(this.currentFrame >= this.frames.length) {
+					this.currentFrame = 0;
+				}
+			},
+
+			render : function(x, y) {
+				this.frames[this.currentFrame].render(x, y);
+			}
+		};
+		animatedSprite.constructor(params);
+
+		return animatedSprite;
+	}
+};
+GSGL.gl.ui = {
+	Button : function(params) {
+		var button = {
+			states : ["INACTIVE","HOVER","ACTIVE"],
+			sprites : [],
+			shape : {},
+			state : 0,
+			callback : {},
+			title : "",
+
+			constructor : function(params) {
+				for(key in params) {
+					if(this[key] != undefined) {
+						this[key] = params[key];
+					}
+				}
+			},
+
+			update : function(delta) {
+				var point = new GSGL.geometry.Point($mouse.X, $mouse.Y);
+
+				if($intersects(point, this.shape)) {
+					this.state = 1;
+
+					if($mouse.CLICK[0]) {
+						this.state = 2
+						if(typeof(this.callback) == 'function') {
+							this.callback();
+						}
+					}
+
+					if($mouse.MB[0]) {
+						this.state = 2
+					}
+				} else {
+					this.state = 0;
+				}
+			},
+
+			render : function(delta) {
+				this.sprites[this.state].render(this.shape.pos.x, this.shape.pos.y);
+
+				if(this.title != "") {
+					var oldAlign = $font.getAlign();
+					$font.setAlign("center");
+					var y = this.shape.pos.y + (this.shape.height / 2) - ($font.getLineHeight() / 2);
+
+					$font.drawString(this.title, this.shape.pos.x + (this.shape.width / 2), y);
+				}
+			},
+		};
+		button.constructor(params);
+
+		return button;
 	},
 };
