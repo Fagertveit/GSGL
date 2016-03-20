@@ -201,6 +201,12 @@ GSGL.event = {
 					this.logger.log("Released key: " + event.keyCode, "Event");
 				}
 				this.KEYS[event.keyCode] = false;
+			},
+
+			clearKeys : function() {
+				for(var key in this.KEYS) {
+					this.KEYS[key] = false;
+				}
 			}
 		};
 		keyboardManager.constructor();

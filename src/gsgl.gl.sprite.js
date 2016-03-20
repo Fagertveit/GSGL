@@ -196,6 +196,7 @@ GSGL.gl.sprite = {
 		var animatedSprite = {
 			frames: [],
 			loop: false,
+			active: true,
 			frameTime: 100,
 			currentFrame: 0,
 			currentDelta: 0,
@@ -208,18 +209,37 @@ GSGL.gl.sprite = {
 				}
 			},
 
-			update : function(delta) {
-				this.currentDelta += delta;
+			play : function() {
+				this.active = true;
+			},
 
-				if(this.currentDelta > this.frameTime) {
-					this.currentDelta = 0;
-					this.nextFrame();
+			stop : function() {
+				this.active = false;
+				this.currentFrame = 0;
+				this.currentDelta = 0;
+			},
+
+			pause : function() {
+				this.active = false;
+			},
+
+			update : function(delta) {
+				if(this.active) {
+					this.currentDelta += delta;
+
+					if(this.currentDelta > this.frameTime) {
+						this.currentDelta = 0;
+						this.nextFrame();
+					}
 				}
 			},
 
 			nextFrame : function() {
 				this.currentFrame += 1;
 				if(this.currentFrame >= this.frames.length) {
+					if(!this.loop) {
+						this.active = false;
+					}
 					this.currentFrame = 0;
 				}
 			},
