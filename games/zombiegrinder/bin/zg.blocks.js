@@ -1,39 +1,39 @@
 ZG.blocks = {
 	BLUEPRINT : {
 		"T" : [
-			[0, 4, 0],
-			[1, 2, 3],
-			[0, 0, 0]
+			[0, 0, 1],
+			[0, 4, 2],
+			[0, 0, 3]
 		],
 		"O" : [
-			[1, 2],
-			[3, 4],
+			[1, 3],
+			[2, 4],
 		],
 		"I" : [
-			[0, 1, 0, 0],
-			[0, 2, 0, 0],
-			[0, 3, 0, 0],
-			[0, 4, 0, 0],
+			[0, 0, 0, 0],
+			[1, 2, 3, 4],
+			[0, 0, 0, 0],
+			[0, 0, 0, 0],
 		],
 		"S" : [
-			[0, 3, 4],
-			[1, 2, 0],
-			[0, 0, 0],
+			[1, 0, 0],
+			[2, 3, 0],
+			[0, 4, 0],
 		],
 		"Z" : [
-			[1, 2, 0],
-			[0, 3, 4],
-			[0, 0, 0],
+			[0, 0, 1],
+			[0, 3, 2],
+			[0, 4, 0],
 		],
 		"L" : [
-			[0, 1, 0],
-			[0, 2, 0],
-			[0, 3, 4],
+			[0, 0, 0],
+			[1, 2, 3],
+			[0, 0, 4],
 		],
 		"J" : [
-			[0, 1, 0],
-			[0, 2, 0],
-			[4, 3, 0],
+			[0, 0, 4],
+			[1, 2, 3],
+			[0, 0, 0],
 		]
 	},
 
@@ -175,7 +175,7 @@ ZG.blocks = {
 			},
 
 			canMoveDown : function(block) {
-				block.moveLeft();
+				block.moveDown();
 
 				for(var i = 0; i < block.shape.length; i++) {
 					for(var j = 0; j < block.shape[i].length; j++) {
@@ -183,7 +183,7 @@ ZG.blocks = {
 							if(j + block.pos.y > 15) {
 								return false;
 							}
-
+							
 							if(this.cells[i + block.pos.x][j + block.pos.y][0] > 0) {
 								return false;
 							}
@@ -254,6 +254,10 @@ ZG.blocks = {
 				return this.pos.y;
 			},
 
+			getAngle : function() {
+				return this.angle;
+			},
+
 			moveDown : function() {
 				this.pos.y += 1;
 			},
@@ -293,7 +297,7 @@ ZG.blocks = {
 				if(this.angle != 0) {
 					this.angle -= 1;
 				} else {
-					this.angle += 1;
+					this.angle = 3;
 				}
 			}
 		};

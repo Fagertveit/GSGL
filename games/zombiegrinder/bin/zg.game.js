@@ -8,6 +8,7 @@ ZG.state.Game = function(params) {
 		score : 0,
 		lines : 0,
 		cleanRows : new Array(16),
+		angles : [0, 90, 180, 270],
 		
 		constructor : function(params) {
 			for(key in params) {
@@ -88,15 +89,15 @@ ZG.state.Game = function(params) {
 			this.block[3][3] = new GSGL.gl.sprite.Sprite({width: 32, height: 32, texture: "main"});
 			this.block[3][3].setUVPixels(2048, 1024, 192, 576, 32, 32);
 			// S Block
-			this.block[4] = new Array(4);
-			this.block[4][0] = new GSGL.gl.sprite.Sprite({width: 32, height: 32, texture: "main"});
-			this.block[4][0].setUVPixels(2048, 1024, 224, 576, 32, 32);
-			this.block[4][1] = new GSGL.gl.sprite.Sprite({width: 32, height: 32, texture: "main"});
-			this.block[4][1].setUVPixels(2048, 1024, 256, 576, 32, 32);
-			this.block[4][2] = new GSGL.gl.sprite.Sprite({width: 32, height: 32, texture: "main"});
-			this.block[4][2].setUVPixels(2048, 1024, 256, 544, 32, 32);
-			this.block[4][3] = new GSGL.gl.sprite.Sprite({width: 32, height: 32, texture: "main"});
-			this.block[4][3].setUVPixels(2048, 1024, 288, 544, 32, 32);
+			this.block[6] = new Array(4);
+			this.block[6][0] = new GSGL.gl.sprite.Sprite({width: 32, height: 32, texture: "main"});
+			this.block[6][0].setUVPixels(2048, 1024, 224, 576, 32, 32);
+			this.block[6][1] = new GSGL.gl.sprite.Sprite({width: 32, height: 32, texture: "main"});
+			this.block[6][1].setUVPixels(2048, 1024, 256, 576, 32, 32);
+			this.block[6][2] = new GSGL.gl.sprite.Sprite({width: 32, height: 32, texture: "main"});
+			this.block[6][2].setUVPixels(2048, 1024, 256, 544, 32, 32);
+			this.block[6][3] = new GSGL.gl.sprite.Sprite({width: 32, height: 32, texture: "main"});
+			this.block[6][3].setUVPixels(2048, 1024, 288, 544, 32, 32);
 			// T Block
 			this.block[5] = new Array(4);
 			this.block[5][0] = new GSGL.gl.sprite.Sprite({width: 32, height: 32, texture: "main"});
@@ -108,15 +109,15 @@ ZG.state.Game = function(params) {
 			this.block[5][3] = new GSGL.gl.sprite.Sprite({width: 32, height: 32, texture: "main"});
 			this.block[5][3].setUVPixels(2048, 1024, 352, 544, 32, 32);
 			// Z Block
-			this.block[6] = new Array(4);
-			this.block[6][0] = new GSGL.gl.sprite.Sprite({width: 32, height: 32, texture: "main"});
-			this.block[6][0].setUVPixels(2048, 1024, 416, 544, 32, 32);
-			this.block[6][1] = new GSGL.gl.sprite.Sprite({width: 32, height: 32, texture: "main"});
-			this.block[6][1].setUVPixels(2048, 1024, 448, 544, 32, 32);
-			this.block[6][2] = new GSGL.gl.sprite.Sprite({width: 32, height: 32, texture: "main"});
-			this.block[6][2].setUVPixels(2048, 1024, 448, 576, 32, 32);
-			this.block[6][3] = new GSGL.gl.sprite.Sprite({width: 32, height: 32, texture: "main"});
-			this.block[6][3].setUVPixels(2048, 1024, 480, 576, 32, 32);
+			this.block[4] = new Array(4);
+			this.block[4][0] = new GSGL.gl.sprite.Sprite({width: 32, height: 32, texture: "main"});
+			this.block[4][0].setUVPixels(2048, 1024, 416, 544, 32, 32);
+			this.block[4][1] = new GSGL.gl.sprite.Sprite({width: 32, height: 32, texture: "main"});
+			this.block[4][1].setUVPixels(2048, 1024, 448, 544, 32, 32);
+			this.block[4][2] = new GSGL.gl.sprite.Sprite({width: 32, height: 32, texture: "main"});
+			this.block[4][2].setUVPixels(2048, 1024, 448, 576, 32, 32);
+			this.block[4][3] = new GSGL.gl.sprite.Sprite({width: 32, height: 32, texture: "main"});
+			this.block[4][3].setUVPixels(2048, 1024, 480, 576, 32, 32);
 
 			this.mashersAnim = [];
 
@@ -184,7 +185,6 @@ ZG.state.Game = function(params) {
 
 			this.blockManager = new ZG.blocks.BlockManager();
 			this.keyManager = new GSGL.event.KeyboardManager();
-			this.keyManager.KEY_LOGGER = true;
 			this.timer = this.levelSpeed[this.level];
 		},
 
@@ -195,21 +195,20 @@ ZG.state.Game = function(params) {
 			if(this.timer < 0) {
 				var tempBlock = new ZG.blocks.Block();
 				tempBlock.shape = this.aliveBlock.shape;
-				tempBlock.pos.x = this.aliveBlock.pos.x;
-				tempBlock.pos.y = this.aliveBlock.pos.y;
+				tempBlock.pos.x = new Number(this.aliveBlock.pos.x);
+				tempBlock.pos.y = new Number(this.aliveBlock.pos.y);
 
 				if(this.blockManager.canMoveDown(tempBlock)) {
 					this.aliveBlock.moveDown();
 					this.score += 10;
 				} else {
-					this.blockManager.killBlock(aliveBlock);
+					this.blockManager.killBlock(this.aliveBlock);
 
 					this.handleKill();
 					this.spawnBlock();
 				}
 
 				this.timer = this.levelSpeed[this.level];
-				console.log(this.aliveBlock);
 			}
 		},
 
@@ -228,6 +227,7 @@ ZG.state.Game = function(params) {
 
 		handleKill : function() {
 			var rowScore = 0;
+			var cleaning = false;
 
 			for(var i = 0; i < ZG.blocks.YCELLS; i++) {
 				if(this.blockManager.checkRow(i)) {
@@ -235,7 +235,7 @@ ZG.state.Game = function(params) {
 					this.lines++;
 					this.cleanRows[i] = true;
 					cleaning = true;
-					this.masher[i].play();
+					this.mashersAnim[i].play();
 				}
 			}
 
@@ -272,7 +272,8 @@ ZG.state.Game = function(params) {
 		handleInput : function(delta) {
 			var tempBlock = new ZG.blocks.Block();
 			tempBlock.shape = this.aliveBlock.shape;
-			tempBlock.pos = this.aliveBlock.pos;
+			tempBlock.pos.x = new Number(this.aliveBlock.pos.x);
+			tempBlock.pos.y = new Number(this.aliveBlock.pos.y);
 
 			if(this.keyManager.KEYS[GSGL.event.KEY["LEFT"]]) {
 				// Handle Left key
@@ -306,7 +307,7 @@ ZG.state.Game = function(params) {
 				fallRange--;
 
 				var fallScore = 10;
-				for(var i = 0; i < fall; i++) {
+				for(var i = 0; i < fallRange; i++) {
 					this.aliveBlock.moveDown();
 					this.score += 20 + fallScore;
 					fallScore += 20;
@@ -323,9 +324,13 @@ ZG.state.Game = function(params) {
 
 			this.background.render(0, 0);
 			
+			this.renderBlocks();
 			this.renderMashers(delta);
 			this.renderGrinders(delta);
-			this.renderBlocks();
+
+			$font.drawString(String(this.score), 395, 236);
+			$font.drawString(String(this.level), 485, 276);
+			$font.drawString(String(this.lines), 485, 318);
 			
 			$renderManager.render();
 		},
@@ -335,7 +340,7 @@ ZG.state.Game = function(params) {
 			for(var i = 0; i < this.nextBlock.shape.length; i++) {
 				for(var j = 0; j < this.nextBlock.shape[i].length; j++) {
 					if(this.nextBlock.shape[i][j] > 0) {
-						this.block[this.nextBlock.getType()][this.nextBlock.shape[i][j] - 1].render(32 * j + 444, 32 * i + 96);
+						this.block[this.nextBlock.getType()][this.nextBlock.shape[i][j] - 1].render(32 * i + 444, 32 * j + 96);
 					}
 				}
 			}
@@ -344,7 +349,7 @@ ZG.state.Game = function(params) {
 			for(var i = 0; i < this.aliveBlock.shape.length; i++) {
 				for(var j = 0; j < this.aliveBlock.shape[i].length; j++) {
 					if(this.aliveBlock.shape[i][j] > 0) {
-						this.block[this.aliveBlock.getType()][this.aliveBlock.shape[i][j] - 1].render(32 * (i + this.aliveBlock.getPosX()) + 32, 32 * (j + this.aliveBlock.getPosY()));
+						this.block[this.aliveBlock.getType()][this.aliveBlock.shape[i][j] - 1].renderAngle(32 * (i + this.aliveBlock.getPosX()) + 32, 32 * (j + this.aliveBlock.getPosY()), this.angles[this.aliveBlock.getAngle()]);
 					}
 				}
 			}
@@ -353,7 +358,7 @@ ZG.state.Game = function(params) {
 			for(var i = 0; i < ZG.blocks.XCELLS; i++) {
 				for(var j = 0; j < ZG.blocks.YCELLS; j++) {
 					if(this.blockManager.checkTile(i, j) > 0) {
-						this.block[this.blockManager.getType(i, j)][this.blockManager.checkTile(i, j) - 1].render(32 * j + 32, 32 * i);
+						this.block[this.blockManager.getType(i, j)][this.blockManager.checkTile(i, j) - 1].renderAngle(32 * i + 32, 32 * j, this.angles[this.blockManager.getAngle(i, j)]);
 					}
 				}
 			}

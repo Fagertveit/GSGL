@@ -18,6 +18,7 @@ ZG.state.Splash = function(params) {
 			
 			$shaderManager.createProgram("data/2d.fs", "data/2d.vs", "default");
 			$shaderManager.useProgram("default");
+			$font = new GSGL.gl.font.Font({src: "font/ghoul2.xml"});
 
 			$renderManager.initRenderer();
 
