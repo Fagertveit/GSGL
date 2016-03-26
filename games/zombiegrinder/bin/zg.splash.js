@@ -17,13 +17,17 @@ ZG.state.Splash = function(params) {
 			var _this = this;
 			
 			$shaderManager.createProgram("data/2d.fs", "data/2d.vs", "default");
+			$shaderManager.createProgram("data/vintage.fs", "data/vintage.vs", "vintage");
+
 			$shaderManager.useProgram("default");
 			$font = new GSGL.gl.font.Font({src: "font/ghoul2.xml"});
+			$font.setColor(1.0, 0.98, 0.0, 1.0);
 
 			$renderManager.initRenderer();
 
 			// Load the main texture
 			$textureManager.addTexture("img/loading.png", "splash");
+			$zombieRenderer = new ZG.render.ZombieRenderer({});
 
 			this.splash = new GSGL.gl.sprite.Sprite({width: 512, height: 288, texture: "splash"});
 			this.splash.setUVPixels(512, 512, 0, 0, 512, 288);

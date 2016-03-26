@@ -2,13 +2,14 @@ ZG.state.Game = function(params) {
 	var game = {
 		application : {},
 		logger : new GSGL.utility.Logger({type: "Zombie Grinder Menu"}),
-		levelSpeed : [2000, 900, 800, 700, 600, 500, 400, 300, 200, 100],
+		levelSpeed : [1000, 900, 800, 700, 600, 500, 400, 300, 200, 100],
 		timer : 0,
 		level : 0,
 		score : 0,
 		lines : 0,
 		cleanRows : new Array(16),
 		angles : [0, 90, 180, 270],
+		pause : false,
 		
 		constructor : function(params) {
 			for(key in params) {
@@ -88,26 +89,6 @@ ZG.state.Game = function(params) {
 			this.block[3][2].setUVPixels(2048, 1024, 160, 576, 32, 32);
 			this.block[3][3] = new GSGL.gl.sprite.Sprite({width: 32, height: 32, texture: "main"});
 			this.block[3][3].setUVPixels(2048, 1024, 192, 576, 32, 32);
-			// S Block
-			this.block[6] = new Array(4);
-			this.block[6][0] = new GSGL.gl.sprite.Sprite({width: 32, height: 32, texture: "main"});
-			this.block[6][0].setUVPixels(2048, 1024, 224, 576, 32, 32);
-			this.block[6][1] = new GSGL.gl.sprite.Sprite({width: 32, height: 32, texture: "main"});
-			this.block[6][1].setUVPixels(2048, 1024, 256, 576, 32, 32);
-			this.block[6][2] = new GSGL.gl.sprite.Sprite({width: 32, height: 32, texture: "main"});
-			this.block[6][2].setUVPixels(2048, 1024, 256, 544, 32, 32);
-			this.block[6][3] = new GSGL.gl.sprite.Sprite({width: 32, height: 32, texture: "main"});
-			this.block[6][3].setUVPixels(2048, 1024, 288, 544, 32, 32);
-			// T Block
-			this.block[5] = new Array(4);
-			this.block[5][0] = new GSGL.gl.sprite.Sprite({width: 32, height: 32, texture: "main"});
-			this.block[5][0].setUVPixels(2048, 1024, 320, 576, 32, 32);
-			this.block[5][1] = new GSGL.gl.sprite.Sprite({width: 32, height: 32, texture: "main"});
-			this.block[5][1].setUVPixels(2048, 1024, 352, 576, 32, 32);
-			this.block[5][2] = new GSGL.gl.sprite.Sprite({width: 32, height: 32, texture: "main"});
-			this.block[5][2].setUVPixels(2048, 1024, 384, 576, 32, 32);
-			this.block[5][3] = new GSGL.gl.sprite.Sprite({width: 32, height: 32, texture: "main"});
-			this.block[5][3].setUVPixels(2048, 1024, 352, 544, 32, 32);
 			// Z Block
 			this.block[4] = new Array(4);
 			this.block[4][0] = new GSGL.gl.sprite.Sprite({width: 32, height: 32, texture: "main"});
@@ -118,6 +99,26 @@ ZG.state.Game = function(params) {
 			this.block[4][2].setUVPixels(2048, 1024, 448, 576, 32, 32);
 			this.block[4][3] = new GSGL.gl.sprite.Sprite({width: 32, height: 32, texture: "main"});
 			this.block[4][3].setUVPixels(2048, 1024, 480, 576, 32, 32);
+			// T Block
+			this.block[5] = new Array(4);
+			this.block[5][0] = new GSGL.gl.sprite.Sprite({width: 32, height: 32, texture: "main"});
+			this.block[5][0].setUVPixels(2048, 1024, 320, 576, 32, 32);
+			this.block[5][1] = new GSGL.gl.sprite.Sprite({width: 32, height: 32, texture: "main"});
+			this.block[5][1].setUVPixels(2048, 1024, 352, 576, 32, 32);
+			this.block[5][2] = new GSGL.gl.sprite.Sprite({width: 32, height: 32, texture: "main"});
+			this.block[5][2].setUVPixels(2048, 1024, 384, 576, 32, 32);
+			this.block[5][3] = new GSGL.gl.sprite.Sprite({width: 32, height: 32, texture: "main"});
+			this.block[5][3].setUVPixels(2048, 1024, 352, 544, 32, 32);
+			// S Block
+			this.block[6] = new Array(4);
+			this.block[6][0] = new GSGL.gl.sprite.Sprite({width: 32, height: 32, texture: "main"});
+			this.block[6][0].setUVPixels(2048, 1024, 224, 576, 32, 32);
+			this.block[6][1] = new GSGL.gl.sprite.Sprite({width: 32, height: 32, texture: "main"});
+			this.block[6][1].setUVPixels(2048, 1024, 256, 576, 32, 32);
+			this.block[6][2] = new GSGL.gl.sprite.Sprite({width: 32, height: 32, texture: "main"});
+			this.block[6][2].setUVPixels(2048, 1024, 256, 544, 32, 32);
+			this.block[6][3] = new GSGL.gl.sprite.Sprite({width: 32, height: 32, texture: "main"});
+			this.block[6][3].setUVPixels(2048, 1024, 288, 544, 32, 32);
 
 			this.mashersAnim = [];
 
@@ -190,26 +191,29 @@ ZG.state.Game = function(params) {
 
 		update : function(delta) {
 			this.handleInput(delta);
-			this.timer -= delta;
+			if(!this.pause) {
+				this.timer -= delta;
 
-			if(this.timer < 0) {
-				var tempBlock = new ZG.blocks.Block();
-				tempBlock.shape = this.aliveBlock.shape;
-				tempBlock.pos.x = new Number(this.aliveBlock.pos.x);
-				tempBlock.pos.y = new Number(this.aliveBlock.pos.y);
+				if(this.timer < 0) {
+					var tempBlock = new ZG.blocks.Block();
+					tempBlock.shape = this.aliveBlock.shape;
+					tempBlock.pos.x = new Number(this.aliveBlock.pos.x);
+					tempBlock.pos.y = new Number(this.aliveBlock.pos.y);
 
-				if(this.blockManager.canMoveDown(tempBlock)) {
-					this.aliveBlock.moveDown();
-					this.score += 10;
-				} else {
-					this.blockManager.killBlock(this.aliveBlock);
+					if(this.blockManager.canMoveDown(tempBlock)) {
+						this.aliveBlock.moveDown();
+						this.score += 10;
+					} else {
+						this.blockManager.killBlock(this.aliveBlock);
 
-					this.handleKill();
-					this.spawnBlock();
+						this.handleKill();
+						this.spawnBlock();
+					}
+
+					this.timer = this.levelSpeed[this.level];
 				}
-
-				this.timer = this.levelSpeed[this.level];
 			}
+			$zombieRenderer.update(delta);
 		},
 
 		spawnBlock : function() {
@@ -314,11 +318,17 @@ ZG.state.Game = function(params) {
 				}
 			}
 
+			if(this.keyManager.KEYS[GSGL.event.KEY["PAUSE"]] || this.keyManager.KEYS[GSGL.event.KEY["P"]]) {
+				this.pause = !this.pause;
+			}
+
 			// Reset all keys
 			this.keyManager.clearKeys();
 		},
 
 		render : function(delta) {
+			$shaderManager.useProgram("default");
+			gl.bindFramebuffer(gl.FRAMEBUFFER, $zombieRenderer.FBO);
 			gl.clear(gl.COLOR_BUFFER_BIT);
 			gl.enable(gl.BLEND);
 
@@ -333,6 +343,19 @@ ZG.state.Game = function(params) {
 			$font.drawString(String(this.lines), 485, 318);
 			
 			$renderManager.render();
+
+			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+			gl.clearColor(0.0, 0.0, 0.0, 1.0)
+			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+			gl.enable(gl.BLEND);
+
+			var sprite = new GSGL.gl.sprite.Sprite({width: 544, height: 544});
+			sprite.setUVPixels(1024, 1024, 0, 544, 544, -544);
+			sprite.texture = $zombieRenderer.FBO.texture;
+			sprite.render(0, 0);
+			
+			$zombieRenderer.renderFilter();
+			$renderManager.clearCalls();
 		},
 
 		renderBlocks : function() {

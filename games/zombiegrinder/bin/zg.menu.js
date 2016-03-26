@@ -118,12 +118,16 @@ ZG.state.Menu = function(params) {
 					break;
 			}
 			
+			$zombieRenderer.update(delta);
 		},
 
 		render : function(delta) {
-			gl.clear(gl.COLOR_BUFFER_BIT);
+			$shaderManager.useProgram("default");
+			gl.bindFramebuffer(gl.FRAMEBUFFER, $zombieRenderer.FBO);
+			gl.clearColor(0.0, 0.0, 0.0, 1.0)
+			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 			gl.enable(gl.BLEND);
-
+			
 			switch(this.state) {
 				case "main":
 					this.menuBackground.render(0, 0);
@@ -140,8 +144,21 @@ ZG.state.Menu = function(params) {
 					this.aboutText.render(16, 464);
 					break;
 			}
-			
+
 			$renderManager.render();
+
+			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+			gl.clearColor(0.0, 0.0, 0.0, 1.0)
+			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+			gl.enable(gl.BLEND);
+
+			var sprite = new GSGL.gl.sprite.Sprite({width: 544, height: 544});
+			sprite.setUVPixels(1024, 1024, 0, 544, 544, -544);
+			sprite.texture = $zombieRenderer.FBO.texture;
+			sprite.render(0, 0);
+			
+			$zombieRenderer.renderFilter();
+			$renderManager.clearCalls();
 		},
 
 		setState : function(state) {
