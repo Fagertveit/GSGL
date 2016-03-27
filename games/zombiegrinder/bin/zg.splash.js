@@ -45,6 +45,7 @@ ZG.state.Splash = function(params) {
 			this.chainFront.setUVPixels(512, 512, 0, 448, 256, 64);
 
 			$textureManager.addTexture("img/texture.png", "main");
+			$touch.LOGEVENTS = true;
 		},
 
 		update : function(delta) {

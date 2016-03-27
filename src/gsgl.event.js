@@ -139,8 +139,8 @@ GSGL.event = {
 			    	this.X = event.pageX;
 			    	this.Y = event.pageY;
 			    } else {
-			    	this.X = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
-			    	this.Y = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+			    	this.X = event.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+			    	this.Y = event.clientY + document.body.scrollTop + document.documentElement.scrollTop;
 			    }
 			    
 			    this.X -= this.container.offsetLeft;
@@ -214,7 +214,143 @@ GSGL.event = {
 		return keyboardManager;
 	},
 
-	TouchManager : function() {
+	TouchManager : function(params) {
+		var touchManager = {
+			SWIPE_LEFT : false,
+			SWIPE_RIGHT : false,
+			SWIPE_UP : false,
+			SWIPE_DOWN : false,
+			X : 0,
+			Y : 0,
+			LOGEVENTS : false,
+			logger : new GSGL.utility.Logger({type: "Touch Manager"}),
+			container : {},
+			activeTouchStart : {},
 
+			constructor : function(params) {
+				var _this = this;
+				this.container = document.getElementById(params.target);
+
+				this.container.addEventListener("touchstart", function(event) {
+					_this.setTouchStart(event);
+				}, true);
+
+				this.container.addEventListener("touchend", function(event) {
+					_this.setTouchEnd(event);
+				}, true);
+
+				this.container.addEventListener("touchcancel", function(event) {
+					_this.setTouchCancel(event);
+				}, true);
+
+				this.container.addEventListener("touchmove", function(event) {
+					_this.setTouchPosition(event);
+				}, true);
+			},
+
+			setTouchStart : function(event) {
+				if(this.LOGEVENTS) {
+					this.logger.log('We got a touch event, saving for future calculations', event);
+				}
+				
+				this.activeTouchStart = event;
+			},
+
+			setTouchEnd : function(event) {
+				if(this.LOGEVENTS) {
+					this.logger.log('A touch ended, calculating swipe', event);
+				}
+
+				this.clearSwipes();
+				this.checkSwipe(event);
+				this.activeTouchStart = {};
+			},
+
+			setTouchCancel : function(event) {
+				if(this.LOGEVENTS) {
+					this.logger.log('Touch cancelled');
+				}
+			},
+
+			setTouchPosition : function(event) {
+				if (event.touches[0].pageX != undefined && event.touches[0].pageY != undefined) {
+			    	this.X = event.touches[0].pageX;
+			    	this.Y = event.touches[0].pageY;
+			    } else {
+			    	this.X = event.touches[0].clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+			    	this.Y = event.touches[0].clientY + document.body.scrollTop + document.documentElement.scrollTop;
+			    }
+			    
+			    this.X -= this.container.offsetLeft;
+			    this.Y -= this.container.offsetTop;
+			},
+
+			checkSwipe : function(event) {
+				var startTime = this.activeTouchStart.timeStamp;
+				var endTime = event.timeStamp;
+
+				if(this.LOGEVENTS) {
+					this.logger.log('Touch started at: ' + startTime + ' and ended at: ' + endTime);
+				}
+
+				if(endTime - startTime < 1000 && endTime - startTime > 100) {
+					if(this.LOGEVENTS) {
+						this.logger.log('Action is inside swipe time range, calculating direction');
+					}
+
+					var startX = this.activeTouchStart.touches[0].pageX;
+					var startY = this.activeTouchStart.touches[0].pageY;
+
+					var endX = event.changedTouches[0].pageX;
+					var endY = event.changedTouches[0].pageY;
+
+					var horizontalDist = Math.abs(endX - startX);
+					var verticalDist = Math.abs(endY - startY);
+
+					if(this.LOGEVENTS) {
+						this.logger.log('Swipe stats, startX: ' + startX + ' startY: ' + startY + 
+							'endX: ' + endX + ' endY: ' + endY + ' Horizontal Distance: ' + horizontalDist +
+							' Vertical Distance: ' + verticalDist);
+					}
+
+					if(horizontalDist > verticalDist) {
+						if(endX - startX < 0) {
+							this.SWIPE_LEFT = true;
+							if(this.LOGEVENTS) {
+								this.logger.log('Swiping Left');
+							}
+						} else {
+							this.SWIPE_RIGHT = true;
+							if(this.LOGEVENTS) {
+								this.logger.log('Swiping Right');
+							}
+						}
+					} else {
+						if(endY - startY < 0) {
+							this.SWIPE_UP = true;
+							if(this.LOGEVENTS) {
+								this.logger.log('Swiping Up');
+							}
+						} else {
+							this.SWIPE_DOWN = true;
+							if(this.LOGEVENTS) {
+								this.logger.log('Swiping Down');
+							}
+						}
+					}
+				}
+			},
+
+			clearSwipes : function() {
+				this.SWIPE_RIGHT = false;
+				this.SWIPE_LEFT = false;
+				this.SWIPE_UP = false;
+				this.SWIPE_DOWN = false;
+			}
+
+		};
+		touchManager.constructor(params);
+
+		return touchManager;
 	},
 };

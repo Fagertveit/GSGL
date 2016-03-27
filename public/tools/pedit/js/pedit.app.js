@@ -42,6 +42,7 @@ Application = function(params) {
 			this.surface.initContext();
 
 			this.particleTexture = new GSGL.gl.texture.Texture({src: "img/alpha_particle.png"});
+			this.splatterParticle = new GSGL.gl.texture.Texture({src: "img/splatter_particle01.png"});
 
 			$shaderManager.createProgram("data/2dParticle.fs", "data/2dParticle.vs", "particle");
 			$shaderManager.createProgram("data/2d.fs", "data/2d.vs", "shader2d");
@@ -240,7 +241,7 @@ Application = function(params) {
 
 		addEmitterHandler : function() {
 			var emitter = new GSGL.gl.particle.ParticleEmitter({
-				texture: this.particleTexture.texture,
+				texture: this.splatterParticle.texture,
 				pos: {x: 200, y: 200},
 			});
 

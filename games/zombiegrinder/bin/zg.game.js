@@ -279,28 +279,28 @@ ZG.state.Game = function(params) {
 			tempBlock.pos.x = new Number(this.aliveBlock.pos.x);
 			tempBlock.pos.y = new Number(this.aliveBlock.pos.y);
 
-			if(this.keyManager.KEYS[GSGL.event.KEY["LEFT"]]) {
+			if(this.keyManager.KEYS[GSGL.event.KEY["LEFT"]] || $touch.SWIPE_LEFT) {
 				// Handle Left key
 				if(this.blockManager.canMoveLeft(tempBlock)) {
 					this.aliveBlock.moveLeft();
 				}
 			}
 
-			if(this.keyManager.KEYS[GSGL.event.KEY["RIGHT"]]) {
+			if(this.keyManager.KEYS[GSGL.event.KEY["RIGHT"]] || $touch.SWIPE_RIGHT) {
 				// Handle Right key
 				if(this.blockManager.canMoveRight(tempBlock)) {
 					this.aliveBlock.moveRight();
 				}
 			}
 
-			if(this.keyManager.KEYS[GSGL.event.KEY["UP"]]) {
+			if(this.keyManager.KEYS[GSGL.event.KEY["UP"]] || $touch.SWIPE_UP) {
 				// Handle Rotate
 				if(this.blockManager.canRotate(tempBlock)) {
 					this.aliveBlock.rotate();
 				}
 			}
 
-			if(this.keyManager.KEYS[GSGL.event.KEY["DOWN"]]) {
+			if(this.keyManager.KEYS[GSGL.event.KEY["DOWN"]] || $touch.SWIPE_DOWN) {
 				// Handle Fall
 				var fallRange = 0;
 
@@ -324,6 +324,7 @@ ZG.state.Game = function(params) {
 
 			// Reset all keys
 			this.keyManager.clearKeys();
+			$touch.clearSwipes();
 		},
 
 		render : function(delta) {

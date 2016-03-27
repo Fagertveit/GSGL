@@ -35,6 +35,7 @@ GSGL.gl = {
 
 				// Global mouse and keyboard event handelers.
 				$mouse = new GSGL.event.MouseManager({target: GSGL.CONTAINER_ID});
+				$touch = new GSGL.event.TouchManager({target: GSGL.CONTAINER_ID});
 				$keyboard = new GSGL.event.KeyboardManager();
 				// Global collision detection, takes to shapes and checks if they intersects.
 				$intersects = GSGL.physics.intersects;

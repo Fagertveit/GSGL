@@ -10,7 +10,6 @@ GSGL.gl.particle = {
 				x: 0,
 				y: 0,
 			},
-			angleVel : 0,
 			size : 1,
 			startLife : 1000,
 			life : 0,

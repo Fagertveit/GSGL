@@ -102,22 +102,10 @@ ZG.render = {
 				gl.uniform1f(this.timeLoc, this.timeLapse);
 
 				//gl.uniform2f(this.resolutionLoc, GSGL.WIDTH, GSGL.HEIGHT);
-				gl.uniform2f(this.c_resolutionLoc, GSGL.WIDTH, GSGL.HEIGHT);
+				gl.uniform2f(this.resolutionLoc, GSGL.WIDTH, GSGL.HEIGHT);
 
 				for(key in $renderManager.renderCalls) {
-					if($renderManager.renderCalls[key].hasTexture) {
-						gl.uniform1i($renderManager.noTextureLoc, 0);
-						gl.bindTexture(gl.TEXTURE_2D, $renderManager.renderCalls[key].texture);
-					} else {
-						gl.uniform1i($renderManager.noTextureLoc, 1);
-					}
-
-					if($renderManager.renderCalls[key].hasColor) {
-						gl.uniform1i($renderManager.noColorLoc, 0);
-						gl.uniform4f($renderManager.colorLoc, $renderManager.renderCalls[key].color[0], $renderManager.renderCalls[key].color[1], $renderManager.renderCalls[key].color[2], $renderManager.renderCalls[key].color[3]); 
-					} else {
-						gl.uniform1i($renderManager.noColorLoc, 1);
-					}
+					gl.bindTexture(gl.TEXTURE_2D, $renderManager.renderCalls[key].texture);
 
 					gl.bindBuffer(gl.ARRAY_BUFFER, $renderManager.vertexBuffer);
 					gl.bufferData(gl.ARRAY_BUFFER, new Float32Array($renderManager.renderCalls[key].vertices), gl.STATIC_DRAW);
