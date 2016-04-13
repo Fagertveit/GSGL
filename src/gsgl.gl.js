@@ -33,9 +33,15 @@ GSGL.gl = {
 				GSGL.WIDTH = this.width;
 				GSGL.HEIGHT = this.height;
 
-				// Global mouse and keyboard event handelers.
-				$mouse = new GSGL.event.MouseManager({target: GSGL.CONTAINER_ID});
-				$touch = new GSGL.event.TouchManager({target: GSGL.CONTAINER_ID});
+				var realWidth = $surface.canvas.clientWidth;
+				var realHeight = $surface.canvas.clientHeight;
+
+				$resolution = new GSGL.utility.Resolution({WIDTH: GSGL.WIDTH, HEIGHT: GSGL.HEIGHT, REAL_WIDTH: realWidth, REAL_HEIGHT: realHeight});
+				// Global mouse, touch and keyboard event handelers.
+				$mouse = new GSGL.event.MouseManager({target: GSGL.CONTAINER_ID,});
+				$mouse.RESOLUTION = true;
+				$touch = new GSGL.event.TouchManager({target: GSGL.CONTAINER_ID,});
+				$touch.RESOLUTION = true;
 				$keyboard = new GSGL.event.KeyboardManager();
 				// Global collision detection, takes to shapes and checks if they intersects.
 				$intersects = GSGL.physics.intersects;

@@ -18,6 +18,7 @@ gulp.task('minify', function(done) {
 			'./src/gsgl.surface.js',
 			'./src/gsgl.ui.js',
 			'./src/gsgl.utility.js',
+			'./src/gsgl.tilemap.js',
 			'./src/gsgl.gl.js',
 			'./src/gsgl.gl.shader.js',
 			'./src/gsgl.gl.particle.js',

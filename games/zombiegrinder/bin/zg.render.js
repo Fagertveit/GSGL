@@ -12,9 +12,9 @@ ZG.render = {
 			FBOHeight : 1024,
 			FBO : {},
 			// Shader vars
-			sepiaValue : 0.6,
-			noiseValue : 0.2,
-			scratchValue : 0.3,
+			sepiaValue : 0.8,
+			noiseValue : 0.1,
+			scratchValue : 0.2,
 			innerVignetting : 1.0,
 			outerVignetting : 1.4,
 			randomValue : 0.0,
@@ -84,7 +84,7 @@ ZG.render = {
 			},
 
 			update : function(delta) {
-				this.timeLaps += delta;
+				this.timeLaps += 1;
 				this.randomValue = Math.random();
 			},
 

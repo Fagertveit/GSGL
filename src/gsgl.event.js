@@ -48,6 +48,7 @@ GSGL.event = {
 			PREVENT_DEFAULT : true,
 			STOP_PROPAGATION : true,
 			LOGEVENTS : false,
+			RESOLUTION : false,
 			logger : new GSGL.utility.Logger({type: "Mouse Manager"}),
 			container : {},
 			
@@ -145,6 +146,11 @@ GSGL.event = {
 			    
 			    this.X -= this.container.offsetLeft;
 			    this.Y -= this.container.offsetTop;
+
+			    if(this.RESOLUTION) {
+			    	this.X = $resolution.getX(this.X);
+			    	this.Y = $resolution.getY(this.Y);
+			    }
 			}
 		};
 		mouseManager.constructor(params);
@@ -223,6 +229,7 @@ GSGL.event = {
 			X : 0,
 			Y : 0,
 			LOGEVENTS : false,
+			RESOLUTION : false,
 			logger : new GSGL.utility.Logger({type: "Touch Manager"}),
 			container : {},
 			activeTouchStart : {},
@@ -283,6 +290,11 @@ GSGL.event = {
 			    
 			    this.X -= this.container.offsetLeft;
 			    this.Y -= this.container.offsetTop;
+
+			    if(this.RESOLUTION) {
+			    	this.X = $resolution.getX(this.X);
+			    	this.Y = $resolution.getY(this.Y);
+			    }
 			},
 
 			checkSwipe : function(event) {

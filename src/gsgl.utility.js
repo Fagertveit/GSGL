@@ -2,6 +2,44 @@ GSGL.utility = {
 	EPSILON : 0.000001,
 	PI : Math.PI,
 
+	Resolution : function(params) {
+		var resolution = {
+			WIDTH : 0,
+			HEIGHT : 0,
+			REAL_WIDTH : 0,
+			REAL_HEIGHT : 0,
+
+			constructor : function(params) {
+				for(key in params) {
+					if(this[key] != undefined) {
+						this[key] = params[key];
+					}
+				}
+
+				console.log('Real width: ' + this.REAL_WIDTH + ' Real height: ' + this.REAL_HEIGHT + ' Width: ' + this.WIDTH + ' Height: ' + this.HEIGHT);
+			},
+
+			getX : function(x) {
+				return (x / this.REAL_WIDTH) * this.WIDTH; 
+			},
+
+			getY : function(y) {
+				return (y / this.REAL_HEIGHT) * this.HEIGHT;
+			},
+
+			getWidth : function(width) {
+				return (this.REAL_WIDTH / this.WIDTH) * width;
+			},
+
+			getHeight : function(height) {
+				return (this.REAL_HEIGHT / this.HEIGHT) * height;
+			}
+		};
+		resolution.constructor(params);
+
+		return resolution;
+	},
+
 	Ajax : function(params) {
 		var ajax = {
 			async : false,

@@ -59,6 +59,7 @@ GSGL.event = {
 			PREVENT_DEFAULT : true,
 			STOP_PROPAGATION : true,
 			LOGEVENTS : false,
+			RESOLUTION : false,
 			logger : new GSGL.utility.Logger({type: "Mouse Manager"}),
 			container : {},
 			
@@ -156,6 +157,11 @@ GSGL.event = {
 			    
 			    this.X -= this.container.offsetLeft;
 			    this.Y -= this.container.offsetTop;
+
+			    if(this.RESOLUTION) {
+			    	this.X = $resolution.getX(this.X);
+			    	this.Y = $resolution.getY(this.Y);
+			    }
 			}
 		};
 		mouseManager.constructor(params);
@@ -234,6 +240,7 @@ GSGL.event = {
 			X : 0,
 			Y : 0,
 			LOGEVENTS : false,
+			RESOLUTION : false,
 			logger : new GSGL.utility.Logger({type: "Touch Manager"}),
 			container : {},
 			activeTouchStart : {},
@@ -294,6 +301,11 @@ GSGL.event = {
 			    
 			    this.X -= this.container.offsetLeft;
 			    this.Y -= this.container.offsetTop;
+
+			    if(this.RESOLUTION) {
+			    	this.X = $resolution.getX(this.X);
+			    	this.Y = $resolution.getY(this.Y);
+			    }
 			},
 
 			checkSwipe : function(event) {
@@ -2164,6 +2176,44 @@ GSGL.utility = {
 	EPSILON : 0.000001,
 	PI : Math.PI,
 
+	Resolution : function(params) {
+		var resolution = {
+			WIDTH : 0,
+			HEIGHT : 0,
+			REAL_WIDTH : 0,
+			REAL_HEIGHT : 0,
+
+			constructor : function(params) {
+				for(key in params) {
+					if(this[key] != undefined) {
+						this[key] = params[key];
+					}
+				}
+
+				console.log('Real width: ' + this.REAL_WIDTH + ' Real height: ' + this.REAL_HEIGHT + ' Width: ' + this.WIDTH + ' Height: ' + this.HEIGHT);
+			},
+
+			getX : function(x) {
+				return (x / this.REAL_WIDTH) * this.WIDTH; 
+			},
+
+			getY : function(y) {
+				return (y / this.REAL_HEIGHT) * this.HEIGHT;
+			},
+
+			getWidth : function(width) {
+				return (this.REAL_WIDTH / this.WIDTH) * width;
+			},
+
+			getHeight : function(height) {
+				return (this.REAL_HEIGHT / this.HEIGHT) * height;
+			}
+		};
+		resolution.constructor(params);
+
+		return resolution;
+	},
+
 	Ajax : function(params) {
 		var ajax = {
 			async : false,
@@ -2262,6 +2312,139 @@ GSGL.utility = {
 		return str.charAt(0).toUpperCase() + str.slice(1);
 	},
 };
+GSGL.tilemap = {
+	Tilemap : function(params) {
+		var tilemap = {
+			layers : [],
+			tilesets : [],
+			width : 0,
+			height : 0,
+			tilewidth : 0,
+			tileheight : 0,
+			backgroundcolor : new GSGL.graphics.Color(),
+
+			constructor : function(params) {
+				for(key in params) {
+					if(this[key] != undefined) {
+						this[key] = params[key];
+					}
+				}
+			},
+
+			/* Tiled map loader
+			 * Must be uncompressed base64 data encoded orthogonal right-down
+			 * map
+			 */
+			loadTiledMap : function(url) {
+				var _this = this;
+				var ajax = new GSGL.utility.Ajax();
+				ajax.load(url, function(data) {
+					var tiledMap = JSON.parse(data.responseText);
+					console.log(tiledMap);
+
+					// First we set the tilemap properties
+					_this.width = tiledMap.width;
+					_this.height = tiledMap.height;
+					_this.tileWidth = tiledMap.tilewidth;
+					_this.tileHeight = tiledMap.tileheight;
+					_this.backgroundColor.setHex(tiledMap.backgroundcolor);
+
+					// Then we create the layers
+					for(var i in tiledMap.layers) {
+						_this.layers.push(new GSGL.tilemap.TilemapLayer(tiledMap.layers[i]));
+						_this.layers[i].decodeTileData();
+					}
+
+					// And last we import the sprite sheet that is the tiles
+					for(var i in tiledMap.tilesets) {
+						_this.tilesets.push(new GSGL.tilemap.Tileset(tiledMap.tilesets[i]));
+					}
+
+					// Let's output the tilemap in all it's glory!
+					console.log(_this);
+				});
+			}
+		};
+		tilemap.constructor(params);
+
+		return tilemap;
+	},
+
+	TilemapLayer : function(params) {
+		var tilemapLayer = {
+			tiles : [],
+			data : "",
+			encoding : "base64",
+			height : 0,
+			width : 0,
+			x : 0,
+			y : 0,
+			visible : true,
+			opacity : 1,
+			type : "tilelayer",
+			name : "",
+
+			constructor : function(params) {
+				for(key in params) {
+					if(this[key] != undefined) {
+						this[key] = params[key];
+					}
+				}
+			},
+
+			decodeTileData : function() {
+				var rawData = new Int32Array(atob(this.data));
+
+				console.log(rawData);
+			},
+		};
+		tilemapLayer.constructor(params);
+
+		return tilemapLayer;
+	},
+
+	Tileset : function(params) {
+		var tileset = {
+			image : "",
+			imagewidth : 0,
+			imageheight : 0,
+			tilecount : 0,
+			tilewidth : 0,
+			tileheight : 0,
+			firstgid : 0,
+			columns : 0,
+			margin : 0,
+			spacing : 0,
+			name : "",
+
+			constructor : function(params) {
+				for(key in params) {
+					if(this[key] != undefined) {
+						this[key] = params[key];
+					}
+				}
+			}
+		};
+		tileset.constructor(params);
+
+		return tileset;
+	},
+
+	Tile : function(params) {
+		var tile = {
+			constructor : function(params) {
+				for(key in params) {
+					if(this[key] != undefined) {
+						this[key] = params[key];
+					}
+				}
+			}
+		};
+		tile.constructor(params);
+
+		return tile;
+	}
+};
 GSGL.gl = {
 	VERTEX_SHADER : 0,
 	FRAGMENT_SHADER : 1,
@@ -2297,9 +2480,15 @@ GSGL.gl = {
 				GSGL.WIDTH = this.width;
 				GSGL.HEIGHT = this.height;
 
-				// Global mouse and keyboard event handelers.
-				$mouse = new GSGL.event.MouseManager({target: GSGL.CONTAINER_ID});
-				$touch = new GSGL.event.TouchManager({target: GSGL.CONTAINER_ID});
+				var realWidth = $surface.canvas.clientWidth;
+				var realHeight = $surface.canvas.clientHeight;
+
+				$resolution = new GSGL.utility.Resolution({WIDTH: GSGL.WIDTH, HEIGHT: GSGL.HEIGHT, REAL_WIDTH: realWidth, REAL_HEIGHT: realHeight});
+				// Global mouse, touch and keyboard event handelers.
+				$mouse = new GSGL.event.MouseManager({target: GSGL.CONTAINER_ID,});
+				$mouse.RESOLUTION = true;
+				$touch = new GSGL.event.TouchManager({target: GSGL.CONTAINER_ID,});
+				$touch.RESOLUTION = true;
 				$keyboard = new GSGL.event.KeyboardManager();
 				// Global collision detection, takes to shapes and checks if they intersects.
 				$intersects = GSGL.physics.intersects;
